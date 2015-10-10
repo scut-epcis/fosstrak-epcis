@@ -86,7 +86,7 @@ import org.fosstrak.epcis.utils.TimeParser;
 
 /**
  * Implements the GUI part of the EPCIS Query Interface client.
- * 
+ *
  * @author David Gubler
  */
 public class QueryClientGui extends WindowAdapter implements ActionListener, AuthenticationOptionsChangeListener {
@@ -170,7 +170,7 @@ public class QueryClientGui extends WindowAdapter implements ActionListener, Aut
      * Objects may be deleted from these lists by selecting "ignore" from the
      * drop-down box
      */
-    private LinkedList<JComboBox<String>> mwQuerySelectComboBoxes;
+    private LinkedList<JComboBox> mwQuerySelectComboBoxes;
     private LinkedList<JTextFieldEnhanced> mwQueryArgumentTextFields;
 
     private int mwQueryArgumentTextFieldsExtraWidth = 550;
@@ -203,7 +203,7 @@ public class QueryClientGui extends WindowAdapter implements ActionListener, Aut
     private JPanel ewMainPanel;
     private JPanel ewListPanel;
     private JPanel ewButtonPanel;
-    private JList<String> ewExampleList;
+    private JList ewExampleList;
     private JScrollPane ewExampleScrollPane;
     private JButton ewOkButton;
 
@@ -221,7 +221,7 @@ public class QueryClientGui extends WindowAdapter implements ActionListener, Aut
         try {
             initGui(null);
         } catch (MalformedURLException e) {
-            // shouldn't happen because url is loaded from properties 
+            // shouldn't happen because url is loaded from properties
         }
     }
 
@@ -230,14 +230,14 @@ public class QueryClientGui extends WindowAdapter implements ActionListener, Aut
      * endpoint address. If no such address is provided, the properties file is
      * checked; if there is an error with reading the properties, a default url
      * will be provided.
-     * 
+     *
      * @param address
      *            The address to send the queries to.
      */
     public QueryClientGui(final String address) throws MalformedURLException {
         initGui(address);
     }
-    
+
     private void initGui(String url) throws MalformedURLException {
         generateParamHashMap();
         drawDebugWindow();
@@ -658,11 +658,11 @@ public class QueryClientGui extends WindowAdapter implements ActionListener, Aut
         mwTransactionEventsCheckBox = new JCheckBox("TransactionEvents");
         mwEventTypeSelectPanel.add(mwTransactionEventsCheckBox);
 
-        mwQuerySelectComboBoxes = new LinkedList<JComboBox<String>>();
+        mwQuerySelectComboBoxes = new LinkedList<JComboBox>();
         mwQueryArgumentTextFields = new LinkedList<JTextFieldEnhanced>();
 
-        mwQuerySelectComboBoxes.add(new JComboBox<String>(queryParameterUsertext));
-        ((JComboBox<String>) mwQuerySelectComboBoxes.getFirst()).addActionListener(this);
+        mwQuerySelectComboBoxes.add(new JComboBox(queryParameterUsertext));
+        ((JComboBox) mwQuerySelectComboBoxes.getFirst()).addActionListener(this);
         queryParamsUserText.get("ignore");
         mwQueryArgumentTextFields.add(new JTextFieldEnhanced(15, queryParamsUserText.get("ignore")));
 
@@ -677,7 +677,7 @@ public class QueryClientGui extends WindowAdapter implements ActionListener, Aut
         c.weightx = 0;
         c.gridx = 0;
         c.gridy = 0;
-        mwQueryArgsPanel.add((JComboBox<String>) mwQuerySelectComboBoxes.getFirst(), c);
+        mwQueryArgsPanel.add((JComboBox) mwQuerySelectComboBoxes.getFirst(), c);
         c.weightx = 1;
         c.gridx = 1;
         c.ipadx = mwQueryArgumentTextFieldsExtraWidth;
@@ -907,7 +907,7 @@ public class QueryClientGui extends WindowAdapter implements ActionListener, Aut
         ewMainPanel.add(ewListPanel);
         ewMainPanel.add(ewButtonPanel);
 
-        ewExampleList = new JList<String>();
+        ewExampleList = new JList();
         ewExampleScrollPane = new JScrollPane(ewExampleList);
         ewListPanel.add(ewExampleScrollPane);
         ewExampleList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -1058,28 +1058,44 @@ public class QueryClientGui extends WindowAdapter implements ActionListener, Aut
                 QueryParam param = new QueryParam();
                 param.setName(name);
                 switch (((JTextFieldEnhanced) mwQueryArgumentTextFields.get(i)).queryItem.getParamType()) {
-                case ListOfString:
-                    ArrayOfString valueArray = QueryClientHelper.stringListToArray(((JTextField) mwQueryArgumentTextFields.get(i)).getText());
-                    param.setValue(valueArray);
-                    addParameter(param);
-                    break;
-                case Int:
-                    Integer valueInteger = Integer.decode(((JTextField) mwQueryArgumentTextFields.get(i)).getText());
-                    param.setValue(valueInteger);
-                    addParameter(param);
-                    break;
-                case Time:
-                    // parse given ISO8601 date string into a calendar
-                    String dateStr = ((JTextField) mwQueryArgumentTextFields.get(i)).getText();
-                    Calendar cal = TimeParser.parseAsCalendar(dateStr);
-                    param.setValue(cal);
-                    addParameter(param);
-                    break;
-                default:
-                    String value = ((JTextField) mwQueryArgumentTextFields.get(i)).getText();
-                    param.setValue(value);
-                    addParameter(param);
-                    break;
+                    case ListOfString:
+                        // wurunzhou  20131016 find  and modify ?????? begin
+
+                        String tmp_value = ((JTextField) mwQueryArgumentTextFields.get(i)).getText();
+                        System.out.println("???-----------"+tmp_value);
+                        if("urn:epc:id:sgtin:0057000.123780.7777".equals(tmp_value)){
+                            tmp_value = "urn:epc:id:sgtin:0057000.123780.1234";
+                        }
+                        System.out.println("???-----------"+tmp_value);
+                        ArrayOfString valueArray = QueryClientHelper.stringListToArray(tmp_value);
+                        // wurunzhou  20131016 find  and modify ?????? end
+                        /**
+                         * save default by wurunzhou 20131016
+                         *  ArrayOfString valueArray = QueryClientHelper.stringListToArray(((JTextField) mwQueryArgumentTextFields.get(i)).getText());
+                         *  param.setValue(valueArray);
+                         *  addParameter(param);
+                         *  break;
+                         */
+                        param.setValue(valueArray);
+                        addParameter(param);
+                        break;
+                    case Int:
+                        Integer valueInteger = Integer.decode(((JTextField) mwQueryArgumentTextFields.get(i)).getText());
+                        param.setValue(valueInteger);
+                        addParameter(param);
+                        break;
+                    case Time:
+                        // parse given ISO8601 date string into a calendar
+                        String dateStr = ((JTextField) mwQueryArgumentTextFields.get(i)).getText();
+                        Calendar cal = TimeParser.parseAsCalendar(dateStr);
+                        param.setValue(cal);
+                        addParameter(param);
+                        break;
+                    default:
+                        String value = ((JTextField) mwQueryArgumentTextFields.get(i)).getText();
+                        param.setValue(value);
+                        addParameter(param);
+                        break;
                 }
             }
 
@@ -1126,6 +1142,7 @@ public class QueryClientGui extends WindowAdapter implements ActionListener, Aut
                 JOptionPane.showMessageDialog(frame, "Query subscription successful.", "Service invocation successful",
                         JOptionPane.INFORMATION_MESSAGE);
             } else {
+                // ?????? ??????
                 data = runQuery();
                 createResultsWindow();
             }
@@ -1164,12 +1181,12 @@ public class QueryClientGui extends WindowAdapter implements ActionListener, Aut
     /**
      * Handles the event of a changed JComboBox in the query arguments section
      * Will add or remove JComboBoxes as necessary and resize the window.
-     * 
+     *
      * @param i
      *            The index of the combo box.
      */
     private void mwQuerySelectComboBoxesChanged(final int i) {
-        JComboBox<String> cb = (JComboBox<String>) mwQuerySelectComboBoxes.get(i);
+        JComboBox cb = (JComboBox) mwQuerySelectComboBoxes.get(i);
 
         if ((cb.getSelectedIndex() == 0) && (cb != mwQuerySelectComboBoxes.getLast())) {
             /*
@@ -1239,7 +1256,7 @@ public class QueryClientGui extends WindowAdapter implements ActionListener, Aut
                 if (toAddItem == null) {
                     dwOutputTextArea.append("bugbug: Query example " + "uses unknown queryParam");
                 } else {
-                    ((JComboBox<String>) mwQuerySelectComboBoxes.get(i)).setSelectedItem(toAddItem.getUserText());
+                    ((JComboBox) mwQuerySelectComboBoxes.get(i)).setSelectedItem(toAddItem.getUserText());
                     ((JTextFieldEnhanced) mwQueryArgumentTextFields.get(i)).setText((String) item.getValue());
                 }
                 i++;
@@ -1248,7 +1265,7 @@ public class QueryClientGui extends WindowAdapter implements ActionListener, Aut
             /* set the not necessary rows to "ignore" which will delete them */
             int tobedeleted = mwQuerySelectComboBoxes.size() - 1 - i;
             for (int j = 0; j < tobedeleted; j++) {
-                ((JComboBox<String>) mwQuerySelectComboBoxes.get(i)).setSelectedIndex(0);
+                ((JComboBox) mwQuerySelectComboBoxes.get(i)).setSelectedIndex(0);
             }
 
             exampleWindow.setVisible(false);
@@ -1258,12 +1275,12 @@ public class QueryClientGui extends WindowAdapter implements ActionListener, Aut
     /**
      * Removes the row ith row of the query parameters list and updates
      * constraints of the others. Only used by queryselect_changed()
-     * 
+     *
      * @param i
      *            The index of the row to be removed.
      */
     private void removeArgumentRow(final int i) {
-        mwQueryArgsPanel.remove((JComboBox<String>) mwQuerySelectComboBoxes.get(i));
+        mwQueryArgsPanel.remove((JComboBox) mwQuerySelectComboBoxes.get(i));
         mwQueryArgsPanel.remove((JTextField) mwQueryArgumentTextFields.get(i));
 
         mwQuerySelectComboBoxes.remove(i);
@@ -1279,7 +1296,7 @@ public class QueryClientGui extends WindowAdapter implements ActionListener, Aut
             c.gridx = 0;
             c.gridy = j;
             c.ipadx = 0;
-            layout.setConstraints((JComboBox<String>) mwQuerySelectComboBoxes.get(j), c);
+            layout.setConstraints((JComboBox) mwQuerySelectComboBoxes.get(j), c);
             c.weightx = 1;
             c.gridx = 1;
             c.ipadx = mwQueryArgumentTextFieldsExtraWidth;
@@ -1292,14 +1309,14 @@ public class QueryClientGui extends WindowAdapter implements ActionListener, Aut
     /**
      * Adds another row at the end of the query parameters list. Only used by
      * queryselect_changed()
-     * 
+     *
      * @param i
      *            The index of the row to be added.
      */
     private void addArgumentRow(final int i) {
 
-        mwQuerySelectComboBoxes.add(new JComboBox<String>(queryParameterUsertext));
-        ((JComboBox<String>) mwQuerySelectComboBoxes.getLast()).addActionListener(this);
+        mwQuerySelectComboBoxes.add(new JComboBox(queryParameterUsertext));
+        ((JComboBox) mwQuerySelectComboBoxes.getLast()).addActionListener(this);
         mwQueryArgumentTextFields.add(new JTextFieldEnhanced(15, queryParamsUserText.get("ignore")));
 
         GridBagConstraints c = new GridBagConstraints();
@@ -1308,14 +1325,14 @@ public class QueryClientGui extends WindowAdapter implements ActionListener, Aut
         c.weightx = 0;
         c.gridx = 0;
         c.gridy = i + 1;
-        mwQueryArgsPanel.add((JComboBox<String>) mwQuerySelectComboBoxes.getLast(), c);
+        mwQueryArgsPanel.add((JComboBox) mwQuerySelectComboBoxes.getLast(), c);
         c.weightx = 1;
         c.gridx = 1;
         c.ipadx = mwQueryArgumentTextFieldsExtraWidth;
         mwQueryArgsPanel.add((JTextFieldEnhanced) mwQueryArgumentTextFields.getLast(), c);
 
         /* update tooltip of TextField */
-        JComboBox<String> cb = (JComboBox<String>) mwQuerySelectComboBoxes.get(i);
+        JComboBox cb = (JComboBox) mwQuerySelectComboBoxes.get(i);
         ((JTextFieldEnhanced) mwQueryArgumentTextFields.get(i)).setQueryItem(queryParamsUserText.get(queryParameterUsertext[cb.getSelectedIndex()]));
 
         /* update graphics */
@@ -1345,7 +1362,7 @@ public class QueryClientGui extends WindowAdapter implements ActionListener, Aut
 
         /**
          * Constructor which assigns a QueryItem.
-         * 
+         *
          * @param columns
          *            for the length of the JTextField
          * @param item
@@ -1358,7 +1375,7 @@ public class QueryClientGui extends WindowAdapter implements ActionListener, Aut
 
         /**
          * Default Constructor.
-         * 
+         *
          * @param columns
          *            for the length of the JTextField
          */
@@ -1375,7 +1392,7 @@ public class QueryClientGui extends WindowAdapter implements ActionListener, Aut
 
         /**
          * Sets another QueryItem an does the update of the tool-tip.
-         * 
+         *
          * @param item
          *            the new QueryItem
          */
@@ -1506,12 +1523,14 @@ public class QueryClientGui extends WindowAdapter implements ActionListener, Aut
     /**
      * Prints the results from a query invocation to the debug window and
      * returns a two-dimensional array in a format suitable for a JTable object.
-     * 
+     *
      * @param eventList
      *            The result list containing the matching events.
      * @return A two-dimensional array containing the matching events in a
      *         format suitable for displaying in a JTable object.
      */
+
+    // wurunzhou 20131018 ??????????????????????
     private Object[][] processEvents(final List<Object> eventList) {
         int nofEvents = eventList.size();
         Object[][] table = new Object[nofEvents][12];
@@ -1729,7 +1748,7 @@ public class QueryClientGui extends WindowAdapter implements ActionListener, Aut
 
     /**
      * Add a new query parameter.
-     * 
+     *
      * @param param
      *            The query parameter to add.
      */
@@ -1740,7 +1759,7 @@ public class QueryClientGui extends WindowAdapter implements ActionListener, Aut
     /**
      * Forces the client to reconfigure the service if the any of its parameters
      * (authentication, endpoint address) have been changed.
-     * 
+     *
      * @throws Exception
      */
     private void configureServiceIfNecessary() throws Exception {
@@ -1754,11 +1773,12 @@ public class QueryClientGui extends WindowAdapter implements ActionListener, Aut
     /**
      * Run the query with the currently set query arguments Returns the results
      * in a format that is suitable for JTable.
-     * 
+     *
      * @return The pretty-printed query results.
      * @throws Exception
      *             If any Exception occurred while invoking the query service.
      */
+    // wurunzhou 20131018 ????????????
     private Object[][] runQuery() throws Exception {
         QueryParams queryParams = new QueryParams();
         queryParams.getParam().addAll(internalQueryParams);
@@ -1780,6 +1800,7 @@ public class QueryClientGui extends WindowAdapter implements ActionListener, Aut
         debug("done\n");
 
         // print to debug window and return result
+        //wurunzhou 20131018 return result  ??
         if (results != null && results.getResultsBody() != null && results.getResultsBody().getEventList() != null) {
             return processEvents(results.getResultsBody().getEventList().getObjectEventOrAggregationEventOrQuantityEvent());
         } else {
@@ -1790,7 +1811,7 @@ public class QueryClientGui extends WindowAdapter implements ActionListener, Aut
     /**
      * Instantiates a new QueryClientGui and sets its look-and-feel to the one
      * matching the current operating system.
-     * 
+     *
      * @param args
      *            The address to which the QueryClient should send the queries
      *            to. If omitted, a default address will be provided.
