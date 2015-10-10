@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -100,6 +101,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.ErrorHandler;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
@@ -111,7 +113,7 @@ import org.xml.sax.SAXParseException;
  * CaptureOperationsServlet; this class should implement EpcisCaptureInterface
  * such that CaptureOperationsServlet can call its capture method and provide it
  * with the parsed events.
- * 
+ *
  * @author David Gubler
  * @author Alain Remund
  * @author Marco Steybe
@@ -199,7 +201,7 @@ public class CaptureOperationsModule {
      * Initializes the EPCIS schema used for validating incoming capture
      * requests. Loads the WSDL and XSD files from the classpath (the schema is
      * bundled with epcis-commons.jar).
-     * 
+     *
      * @return An instantiated schema validation object.
      */
     private Schema initEpcisSchema(String xsdFile) {
@@ -224,7 +226,7 @@ public class CaptureOperationsModule {
 
     /**
      * Resets the database.
-     * 
+     *
      * @throws SQLException
      *             If something goes wrong resetting the database.
      * @throws IOException
@@ -242,11 +244,10 @@ public class CaptureOperationsModule {
                     session = sessionFactory.openSession();
                     Transaction tx = null;
                     for (File file : dbResetScripts) {
-                    	BufferedReader reader = null;
                         try {
                             tx = session.beginTransaction();
                             LOG.info("Running db reset script from file " + file);
-                            reader = new BufferedReader(new FileReader(file));
+                            BufferedReader reader = new BufferedReader(new FileReader(file));
                             String line;
                             String sql = "";
                             while ((line = reader.readLine()) != null) {
@@ -266,10 +267,6 @@ public class CaptureOperationsModule {
                                 tx.rollback();
                             }
                             throw new SQLException(e.toString());
-                        } finally {
-                        	if (reader != null) {
-                        		reader.close();
-                        	}
                         }
                     }
                 } finally {
@@ -287,7 +284,7 @@ public class CaptureOperationsModule {
      * Implements the EPCIS capture operation. Takes an input stream, extracts
      * the payload into an XML document, validates the document against the
      * EPCIS schema, and captures the EPCIS events given in the document.
-     * 
+     *
      * @throws IOException
      *             If an error occurred while validating the request or writing
      *             the response.
@@ -298,9 +295,12 @@ public class CaptureOperationsModule {
      */
     public void doCapture(InputStream in, Principal principal) throws SAXException, InternalBusinessException,
             InvalidFormatException {
+        // wurunzhou 20131022 ????????????
         Document document = null;
         try {
             // parse the input into a DOM
+            // wurunzhou 20131022  ?????????
+            //System.out.println("coding : " + document.getXmlEncoding());
             document = parseInput(in, null);
 
             // validate incoming document against its schema
@@ -322,6 +322,7 @@ public class CaptureOperationsModule {
                 tx = session.beginTransaction();
                 LOG.debug("DB connection opened.");
                 if (isEPCISDocument(document)) {
+                    // wurunzhou 20131022 ?????? ??????????
                     processEvents(session, document);
                 } else if (isEPCISMasterDataDocument(document)) {
                     processMasterData(session, document);
@@ -383,6 +384,7 @@ public class CaptureOperationsModule {
         factory.setIgnoringComments(true);
         factory.setIgnoringElementContentWhitespace(true);
         factory.setSchema(schema);
+        //factory.setAttribute("", "UTF-8");
         try {
             DocumentBuilder builder = factory.newDocumentBuilder();
             builder.setErrorHandler(new ErrorHandler() {
@@ -400,7 +402,12 @@ public class CaptureOperationsModule {
                     throw e;
                 }
             });
-            Document document = builder.parse(in);
+            // wurunzhou  20131022 ?????? ?????
+            InputSource ins = new InputSource();
+            ins.setEncoding("gb2312");
+            ins.setByteStream(in);
+            System.out.println("coding :" +  ins.getEncoding());
+            Document document = builder.parse(ins);
             LOG.debug("payload successfully parsed as XML document");
             if (LOG.isDebugEnabled()) {
                 logDocument(document);
@@ -454,6 +461,7 @@ public class CaptureOperationsModule {
      */
     private void processEvents(Session session, Document document) throws DOMException, SAXException,
             InvalidFormatException {
+        // wurunzhou 20131022 ???????? ??????????? ???????document????
         NodeList eventList = document.getElementsByTagName("EventList");
         NodeList events = eventList.item(0).getChildNodes();
 
@@ -467,6 +475,7 @@ public class CaptureOperationsModule {
                     || nodeName.equals(EpcisConstants.QUANTITY_EVENT)
                     || nodeName.equals(EpcisConstants.TRANSACTION_EVENT)) {
                 LOG.debug("processing event " + i + ": '" + nodeName + "'.");
+                // wurunzhou 20131022 ???? event
                 handleEvent(session, eventNode, nodeName);
                 eventCount++;
                 if (eventCount % 50 == 0) {
@@ -484,7 +493,7 @@ public class CaptureOperationsModule {
      * into the database. The parse routine is generic for all event types; the
      * query generation part has some if/elses to take care of different event
      * parameters.
-     * 
+     *
      * @param eventNode
      *            The current event node.
      * @param eventType
@@ -494,6 +503,7 @@ public class CaptureOperationsModule {
      */
     private void handleEvent(Session session, final Node eventNode, final String eventType) throws DOMException,
             SAXException, InvalidFormatException {
+        // wurunzhou 20131022 ???? event
         if (eventNode == null) {
             // nothing to do
             return;
@@ -523,6 +533,7 @@ public class CaptureOperationsModule {
         List<BusinessTransaction> bizTransList = null;
         List<EventFieldExtension> fieldNameExtList = new ArrayList<EventFieldExtension>();
 
+        // wurunzhou 20131022 ??event
         for (int i = 0; i < eventNode.getChildNodes().getLength(); i++) {
             curEventNode = eventNode.getChildNodes().item(i);
             String nodeName = curEventNode.getNodeName();
@@ -561,9 +572,17 @@ public class CaptureOperationsModule {
             } else if (nodeName.equals("disposition")) {
                 dispositionUri = curEventNode.getTextContent();
             } else if (nodeName.equals("readPoint")) {
+                // wurunzhou 20131022 ???"urn:epc:id:sgln:0614141.00729.rp99" to "urn:epc:id:sgln:0614141.00729.rp97"
                 Element attrElem = (Element) curEventNode;
                 Node id = attrElem.getElementsByTagName("id").item(0);
                 readPointUri = id.getTextContent();
+                // wurunzhou 20131022 ???? begin
+                System.out.println("??? ==" + readPointUri);
+                if("urn:epc:id:sgln:0614141.00729.rp99".equals(readPointUri)){
+                    readPointUri = "urn:epc:id:sgln:0614141.00729.rp97";
+                }
+                System.out.println("??? ==" + readPointUri);
+                // wurunzhou 20131022 ???? end
             } else if (nodeName.equals("bizLocation")) {
                 Element attrElem = (Element) curEventNode;
                 Node id = attrElem.getElementsByTagName("id").item(0);
@@ -661,6 +680,7 @@ public class CaptureOperationsModule {
             be.setExtensions(fieldNameExtList);
         }
 
+        // wurunzhou 20131022 ??????? basevent ???????
         session.save(be);
     }
 
@@ -706,7 +726,7 @@ public class CaptureOperationsModule {
      * (nkef) Takes an XML document node, parses it as EPCIS Master Data and
      * inserts the data into the database. The parse routine is generic for all
      * Vocabulary types;
-     * 
+     *
      * @param vocNode
      *            The current vocabulary node.
      * @param vocType
@@ -793,7 +813,7 @@ public class CaptureOperationsModule {
      * be null in which case an empty String is returned. Otherwise, the value
      * is either given as XML attribute named 'value' or as inline text, see the
      * sample below. <br>
-     * 
+     *
      * <pre>
      * {@code
      * <VocabularyElement id="urn:epc:id:sgln:0037000.00729.0">
@@ -809,7 +829,7 @@ public class CaptureOperationsModule {
      * </VocabularyElement>
      * }
      * </pre>
-     * 
+     *
      * @return the attribute value as String.
      */
     private String parseVocAttributeValue(Node vocAttrNode) {
@@ -842,7 +862,7 @@ public class CaptureOperationsModule {
 
     /**
      * Parses the xml tree for epc nodes and returns a list of EPC URIs.
-     * 
+     *
      * @param eventType
      * @param epcNode
      *            The parent Node from which EPC URIs should be extracted.
@@ -918,7 +938,7 @@ public class CaptureOperationsModule {
     /**
      * Parses the xml tree for epc nodes and returns a List of BizTransaction
      * URIs with their corresponding type.
-     * 
+     *
      * @param bizNode
      *            The parent Node from which BizTransaction URIs should be
      *            extracted.
@@ -970,7 +990,7 @@ public class CaptureOperationsModule {
      * already existing entries; if found, the corresponding ID is returned. If
      * not found, the vocabulary is extended if "insertmissingvoc" is true;
      * otherwise an SQLException is thrown
-     * 
+     *
      * @param tableName
      *            The name of the vocabulary table.
      * @param uri
@@ -982,7 +1002,7 @@ public class CaptureOperationsModule {
      *             If we are not allowed to insert a missing vocabulary.
      */
     public VocabularyElement getOrInsertVocabularyElement(Session session, String vocabularyType,
-            String vocabularyElement) throws SAXException {
+                                                          String vocabularyElement) throws SAXException {
         Class<?> c = vocClassMap.get(vocabularyType);
         Criteria c0 = session.createCriteria(c);
         c0.setCacheable(true);
@@ -1024,7 +1044,7 @@ public class CaptureOperationsModule {
      * searching for already existing entries; if found, the corresponding ID is
      * returned. If not found, the vocabulary is extended if "insertmissingvoc"
      * is true; otherwise an SQLException is thrown
-     * 
+     *
      * @param tableName
      *            The name of the vocabulary table.
      * @param uri
@@ -1036,7 +1056,7 @@ public class CaptureOperationsModule {
      *             If we are not allowed to insert a missing vocabulary.
      */
     public VocabularyElement getOrEditVocabularyElement(Session session, String vocabularyType,
-            String vocabularyElementURI, String mode) throws SAXException {
+                                                        String vocabularyElementURI, String mode) throws SAXException {
         boolean alterURI = false;
         boolean singleDelete = false;
         boolean wdDelete = false;
@@ -1056,6 +1076,7 @@ public class CaptureOperationsModule {
         c0.add(Restrictions.eq("uri", alterURI ? vocabularyElementURI.split("#")[0] : vocabularyElementURI));
         VocabularyElement ve;
         try {
+            System.out.println(c0.uniqueResult().toString()+"-----");
             ve = (VocabularyElement) c0.uniqueResult();
         } catch (ObjectNotFoundException e) {
             ve = null;
@@ -1117,7 +1138,7 @@ public class CaptureOperationsModule {
     /**
      * (nkef) Delete the a vocabulary's Element Descendants and all of their
      * Attributes
-     * 
+     *
      * @param session
      * @param vocabularyType
      * @param vocabularyElementURI
@@ -1137,7 +1158,7 @@ public class CaptureOperationsModule {
 
     /**
      * (nkef) Delete selected id vocabulary elements attributes
-     * 
+     *
      * @param session
      * @param vocabularyType
      * @param vocabularyElementID
@@ -1159,7 +1180,7 @@ public class CaptureOperationsModule {
      * already existing entries; if found, the corresponding ID is returned. If
      * not found, the vocabulary is extended if "insertmissingvoc" is true;
      * otherwise an SQLException is thrown
-     * 
+     *
      * @param tableName
      *            The name of the vocabulary table.
      * @param uri
@@ -1171,8 +1192,8 @@ public class CaptureOperationsModule {
      *             If we are not allowed to insert a missing vocabulary.
      */
     public VocabularyAttributeElement getOrEditVocabularyAttributeElement(Session session, String vocabularyType,
-            Long vocabularyElementID, String vocabularyAttributeElement, String vocabularyAttributeElementValue,
-            String mode) throws SAXException {
+                                                                          Long vocabularyElementID, String vocabularyAttributeElement, String vocabularyAttributeElementValue,
+                                                                          String mode) throws SAXException {
 
         boolean deleteAttribute = false;
 
@@ -1218,7 +1239,11 @@ public class CaptureOperationsModule {
                 vocAttributeElement.setVocabularyAttrCiD(vocabularyAttrCiD);
                 vocAttributeElement.setValue(vocabularyAttributeElementValue);
 
-                if (deleteAttribute) {
+                if (vocAttributeElement == null) {
+                    session.save(vocAttributeElement);
+                }
+
+                else if (deleteAttribute) {
                     Object vocabularyAttr = session.get(c, vocabularyAttrCiD);
                     if (vocabularyAttr != null) session.delete(vocabularyAttr);
                     session.flush();
@@ -1236,7 +1261,7 @@ public class CaptureOperationsModule {
 
     /**
      * TODO: javadoc!
-     * 
+     *
      * @param textContent
      * @return
      * @throws InvalidFormatException
@@ -1267,7 +1292,7 @@ public class CaptureOperationsModule {
 
     /**
      * TODO: javadoc!
-     * 
+     *
      * @param textContent
      * @return
      * @throws InvalidFormatException
@@ -1284,7 +1309,7 @@ public class CaptureOperationsModule {
     /**
      * Check EPC according to 'pure identity' URI as specified in Tag Data
      * Standard.
-     * 
+     *
      * @param textContent
      * @throws InvalidFormatException
      */
