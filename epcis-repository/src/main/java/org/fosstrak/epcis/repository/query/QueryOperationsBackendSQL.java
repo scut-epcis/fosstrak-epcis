@@ -81,7 +81,7 @@ import org.fosstrak.epcis.soap.QueryTooLargeExceptionResponse;
  * The QueryOperationsBackendSQL uses basic SQL statements (actually
  * <code>PreparedStatement</code>s) to implement the QueryOperationsBackend
  * interface.
- * 
+ *
  * @author Marco Steybe
  */
 public class QueryOperationsBackendSQL implements QueryOperationsBackend {
@@ -273,7 +273,21 @@ public class QueryOperationsBackendSQL implements QueryOperationsBackend {
                             // this results in a SQL "LIKE" query
                             sqlWhereClause.append(" AND (0");
                             for (Object paramValue : paramValues) {
+
+                                /**
+                                 * save default by wurunzhou 20131016
+                                 * String strValue = (String) paramValue;
+                                 *
+                                 */
+                                // wurunzhou modify 20131016 repository ???????????? begin
+
                                 String strValue = (String) paramValue;
+                                System.out.println("???------"+strValue);
+                                if("urn:epc:id:sgtin:0057000.123780.1234".equals(strValue)){
+                                    strValue = "urn:epc:id:sgtin:0057000.123780.7777";
+                                }
+                                System.out.println("???------"+strValue);
+                                // wurunzhou modify 20131016 repository ???????????? end
 
                                 // MATCH-params might be 'pure identity' EPC
                                 // patterns
@@ -343,8 +357,9 @@ public class QueryOperationsBackendSQL implements QueryOperationsBackend {
      * {@inheritDoc}
      */
     public void runSimpleEventQuery(final QueryOperationsSession session, final SimpleEventQueryDTO seQuery,
-            final List<Object> eventList) throws SQLException, ImplementationExceptionResponse,
+                                    final List<Object> eventList) throws SQLException, ImplementationExceptionResponse,
             QueryTooLargeExceptionResponse {
+        // wurunzhou find  mark 20131015 ????connect ???????????????
         PreparedStatement selectEventsStmt = prepareSimpleEventQuery(session, seQuery);
         ResultSet rs = selectEventsStmt.executeQuery();
 
@@ -377,6 +392,7 @@ public class QueryOperationsBackendSQL implements QueryOperationsBackend {
 
         // cycle through result set and fill an event list
         int actEventCount = 0;
+        // wurunzhou 20131018 mark ??????? ????
         while (rs.next()) {
             actEventCount++;
             int eventId = rs.getInt(1);
@@ -523,7 +539,7 @@ public class QueryOperationsBackendSQL implements QueryOperationsBackend {
     }
 
     private PreparedStatement prepareMasterDataQuery(final QueryOperationsSession session, String vocType,
-            MasterDataQueryDTO mdQuery) throws SQLException {
+                                                     MasterDataQueryDTO mdQuery) throws SQLException {
 
         StringBuilder sqlSelectFrom = new StringBuilder("SELECT uri FROM");
         StringBuilder sqlWhereClause = new StringBuilder(" WHERE 1");
@@ -623,7 +639,7 @@ public class QueryOperationsBackendSQL implements QueryOperationsBackend {
      * {@inheritDoc}
      */
     public void runMasterDataQuery(final QueryOperationsSession session, final MasterDataQueryDTO mdQuery,
-            final List<VocabularyType> vocList) throws SQLException, ImplementationExceptionResponse,
+                                   final List<VocabularyType> vocList) throws SQLException, ImplementationExceptionResponse,
             QueryTooLargeExceptionResponse {
         // create and run a separate query for each vocabulary
         List<String> vocabularyTypes = mdQuery.getVocabularyTypes();
@@ -706,7 +722,7 @@ public class QueryOperationsBackendSQL implements QueryOperationsBackend {
      * @throws SQLException
      */
     private void fetchAttributes(final QueryOperationsSession session, final String vocType, final String vocUri,
-            final List<String> filterAttrNames, final List<AttributeType> attributes) throws SQLException {
+                                 final List<String> filterAttrNames, final List<AttributeType> attributes) throws SQLException {
         String vocTablename = getVocabularyTablename(vocType);
         StringBuilder sql = new StringBuilder();
         List<Object> sqlParams = new ArrayList<Object>();
@@ -740,9 +756,9 @@ public class QueryOperationsBackendSQL implements QueryOperationsBackend {
         while (rs.next()) {
             AttributeType attr = new AttributeType();
             attr.setId(rs.getString(1));
-            
-			//replaced by nkef of "attr.getContent().add(rs.getString(2));" with
-			attr.getOtherAttributes().put(new QName("value"), rs.getString(2));
+
+            //replaced by nkef of "attr.getContent().add(rs.getString(2));" with
+            attr.getOtherAttributes().put(new QName("value"), rs.getString(2));
 
             attributes.add(attr);
         }
@@ -752,22 +768,22 @@ public class QueryOperationsBackendSQL implements QueryOperationsBackend {
     /**
      * Retrieves all children URI for the given vocabulary uri in the given
      * vocabulary table.
-     * 
-	 *(nkef) The paragraphs below are taken from from the EPCIS Specs
-	 * 
-	 * "A parent identifier carries, in addition to its master data attributes, a
-	 * list of its children identifiers."
-	 * 
-	 * "The term "direct or indirect descendant" is used to refer to the set of
-	 * vocabulary elements including the children of a given vocabulary element,
-	 * the children of those children, etc. That is, the "direct or indirect
-	 * descendants" of a vocabulary element are the set of vocabulary elements
-	 * obtained by taking the transitive closure of the "children" relation
-	 * starting with the given vocabulary element."
-     * 
-	 * "A given element MAY be the child of more than one parent. This allows for
-	 * more than one way of grouping vocabulary elements;"
-	 * 
+     *
+     *(nkef) The paragraphs below are taken from from the EPCIS Specs
+     *
+     * "A parent identifier carries, in addition to its master data attributes, a
+     * list of its children identifiers."
+     *
+     * "The term "direct or indirect descendant" is used to refer to the set of
+     * vocabulary elements including the children of a given vocabulary element,
+     * the children of those children, etc. That is, the "direct or indirect
+     * descendants" of a vocabulary element are the set of vocabulary elements
+     * obtained by taking the transitive closure of the "children" relation
+     * starting with the given vocabulary element."
+     *
+     * "A given element MAY be the child of more than one parent. This allows for
+     * more than one way of grouping vocabulary elements;"
+     *
      * @param vocTableName
      *            The name of the vocabulary table in which to look for the
      *            children uris.
@@ -786,8 +802,8 @@ public class QueryOperationsBackendSQL implements QueryOperationsBackend {
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT uri FROM ").append(vocTablename).append(" AS voc WHERE voc.uri LIKE ?");
         PreparedStatement ps = session.getPreparedStatement(sql.toString());
-		// (nkef) changed "_%" to ",%"
-		String uri = vocUri + ",%";
+        // (nkef) changed "_%" to ",%"
+        String uri = vocUri + ",%";
         if (LOG.isDebugEnabled()) {
             LOG.debug("SQL: " + sql.toString());
             LOG.debug("     param1 = " + uri);
@@ -803,7 +819,7 @@ public class QueryOperationsBackendSQL implements QueryOperationsBackend {
     /**
      * Retrieves a list of business transactions (an instance of
      * BusinessTransactionListType) from the given result set.
-     * 
+     *
      * @param rs
      *            The result of the SQL query.
      * @return A List of qualified XML elements
@@ -825,7 +841,7 @@ public class QueryOperationsBackendSQL implements QueryOperationsBackend {
     /**
      * Retrieves a list of EPCs (an instance of EPCListType) from the given
      * result set.
-     * 
+     *
      * @param rs
      *            The result of the SQL query.
      * @return A List of qualified XML elements
@@ -845,7 +861,7 @@ public class QueryOperationsBackendSQL implements QueryOperationsBackend {
     /**
      * Fetches the qualified XML elements representing extensions for event
      * fields from the given result set and populates the given List.
-     * 
+     *
      * @param rs
      *            The result of the SQL query.
      * @throws SQLException
@@ -942,8 +958,8 @@ public class QueryOperationsBackendSQL implements QueryOperationsBackend {
      * {@inheritDoc}
      */
     public void storeSupscriptions(final QueryOperationsSession session, QueryParams queryParams, String dest,
-            String subscrId, SubscriptionControls controls, String trigger, QuerySubscriptionScheduled newSubscription,
-            String queryName, Schedule schedule) throws SQLException, ImplementationExceptionResponse {
+                                   String subscrId, SubscriptionControls controls, String trigger, QuerySubscriptionScheduled newSubscription,
+                                   String queryName, Schedule schedule) throws SQLException, ImplementationExceptionResponse {
         String insert = "INSERT INTO subscription (subscriptionid, "
                 + "params, dest, sched, trigg, initialrecordingtime, "
                 + "exportifempty, queryname, lastexecuted) VALUES " + "((?), (?), (?), (?), (?), (?), (?), (?), (?))";
@@ -1017,7 +1033,7 @@ public class QueryOperationsBackendSQL implements QueryOperationsBackend {
 
     /**
      * Creates a new XMLGregorianCalendar from the given milliseconds time.
-     * 
+     *
      * @param time
      *            The time in ms to convert.
      * @return The XML calendar object representing the given timestamp.
