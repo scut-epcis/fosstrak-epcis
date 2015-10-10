@@ -28,6 +28,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
@@ -77,7 +80,7 @@ import org.w3c.dom.Element;
 /**
  * GUI class for the EPCIS Capture Interface Client. Implements the GUI and the
  * creation of XML from the GUI data.
- * 
+ *
  * @author David Gubler
  */
 public class CaptureClientGui extends WindowAdapter implements ActionListener, AuthenticationOptionsChangeListener {
@@ -110,7 +113,7 @@ public class CaptureClientGui extends WindowAdapter implements ActionListener, A
     private JLabel mwServiceUrlLabel;
 
     private JTextField mwServiceUrlTextField;
-    private JComboBox<String> mwEventTypeChooserComboBox;
+    private JComboBox mwEventTypeChooserComboBox;
     private JCheckBox mwShowDebugWindowCheckBox;
 
     /* the BizTransaction field */
@@ -125,7 +128,7 @@ public class CaptureClientGui extends WindowAdapter implements ActionListener, A
 
     /* the action type drop-down box */
     private JLabel mwActionLabel;
-    private JComboBox<String> mwActionComboBox;
+    private JComboBox mwActionComboBox;
 
     /* fields for the various URIs */
     private JLabel mwBizStepLabel;
@@ -169,7 +172,7 @@ public class CaptureClientGui extends WindowAdapter implements ActionListener, A
     private JPanel ewMainPanel;
     private JPanel ewListPanel;
     private JPanel ewButtonPanel;
-    private JList<String> ewExampleList;
+    private JList ewExampleList;
     private JScrollPane ewExampleScrollPane;
     private JButton ewOkButton;
 
@@ -180,7 +183,7 @@ public class CaptureClientGui extends WindowAdapter implements ActionListener, A
     private JScrollPane dwOutputScrollPane;
     private JPanel dwButtonPanel;
     private JButton dwClearButton;
-    
+
     /**
      * Constructs a new CaptureClientGui initialized with a default address.
      */
@@ -190,7 +193,7 @@ public class CaptureClientGui extends WindowAdapter implements ActionListener, A
 
     /**
      * Constructs a new CaptureClientGui initialized with the given address.
-     * 
+     *
      * @param address
      *            The address to which the CaptureClient should sent its capture
      *            events.
@@ -236,29 +239,29 @@ public class CaptureClientGui extends WindowAdapter implements ActionListener, A
         mwServiceUrlLabel = new JLabel("Capture interface URL: ");
         mwServiceUrlTextField = new JTextField(client.getCaptureUrl(), 75);
         mwAuthOptions = new AuthenticationOptionsPanel(this);
-        
+
         mwServiceUrlTextField.getDocument().addDocumentListener(new DocumentListener() {
 
-			public void changedUpdate(DocumentEvent e) {
-				configurationChanged(new AuthenticationOptionsChangeEvent(this, isComplete()));
-			}
+            public void changedUpdate(DocumentEvent e) {
+                configurationChanged(new AuthenticationOptionsChangeEvent(this, isComplete()));
+            }
 
-			public void insertUpdate(DocumentEvent e) {
-				configurationChanged(new AuthenticationOptionsChangeEvent(this, isComplete()));
-			}
+            public void insertUpdate(DocumentEvent e) {
+                configurationChanged(new AuthenticationOptionsChangeEvent(this, isComplete()));
+            }
 
-			public void removeUpdate(DocumentEvent e) {
-				configurationChanged(new AuthenticationOptionsChangeEvent(this, isComplete()));
-			}
-			
-			public boolean isComplete() {
-				String url = mwServiceUrlTextField.getText();
-				return url != null && url.length() > 0;
-			}
-        	
+            public void removeUpdate(DocumentEvent e) {
+                configurationChanged(new AuthenticationOptionsChangeEvent(this, isComplete()));
+            }
+
+            public boolean isComplete() {
+                String url = mwServiceUrlTextField.getText();
+                return url != null && url.length() > 0;
+            }
+
         });
 
-        
+
         mwShowDebugWindowCheckBox = new JCheckBox("Show debug window", false);
         mwShowDebugWindowCheckBox.addActionListener(this);
 
@@ -283,7 +286,7 @@ public class CaptureClientGui extends WindowAdapter implements ActionListener, A
         c.gridy = 2;
         mwConfigPanel.add(mwShowDebugWindowCheckBox, c);
 
-        mwEventTypeChooserComboBox = new JComboBox<String>(EpcisEventType.guiNames());
+        mwEventTypeChooserComboBox = new JComboBox(EpcisEventType.guiNames());
         mwEventTypeChooserComboBox.addActionListener(this);
         mwEventTypePanel.add(mwEventTypeChooserComboBox);
 
@@ -301,7 +304,7 @@ public class CaptureClientGui extends WindowAdapter implements ActionListener, A
         mwEventTimeZoneOffsetTextField = new JTextField(CaptureClientHelper.getTimeZone(Calendar.getInstance()));
 
         mwActionLabel = new JLabel("action");
-        mwActionComboBox = new JComboBox<String>(CaptureClientHelper.ACTIONS);
+        mwActionComboBox = new JComboBox(CaptureClientHelper.ACTIONS);
 
         mwBizStepLabel = new JLabel("business step");
         mwBizStepTextField = new JTextField();
@@ -407,7 +410,7 @@ public class CaptureClientGui extends WindowAdapter implements ActionListener, A
             c.weightx = 1; c.gridx = 1;
             mwEventDataInputPanel.add(mwParentIDTextField, c);
         }
-        
+
         if (EpcisEventType.AggregationEvent == eventType) {
             c.gridy++;
             c.weightx = 0; c.gridx = 0;
@@ -415,7 +418,7 @@ public class CaptureClientGui extends WindowAdapter implements ActionListener, A
             c.weightx = 1; c.gridx = 1;
             mwEventDataInputPanel.add(mwChildEPCsTextField, c);
         }
-        
+
         if (EpcisEventType.QuantityEvent == eventType) {
             c.gridy++;
             c.weightx = 0; c.gridx = 0;
@@ -516,7 +519,7 @@ public class CaptureClientGui extends WindowAdapter implements ActionListener, A
         ewMainPanel.add(ewListPanel);
         ewMainPanel.add(ewButtonPanel);
 
-        ewExampleList = new JList<String>();
+        ewExampleList = new JList();
         ewExampleScrollPane = new JScrollPane(ewExampleList);
         ewListPanel.add(ewExampleScrollPane);
         ewExampleList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -540,10 +543,11 @@ public class CaptureClientGui extends WindowAdapter implements ActionListener, A
     /**
      * Event dispatcher. Very simple events may be processed directly within
      * this method.
-     * 
+     *
      * @param e
      *            for the Action
      */
+    // wurunzhou 20131022 ??????????????
     public void actionPerformed(final ActionEvent e) {
         if (e.getSource() == mwEventTypeChooserComboBox) {
             mwEventTypeChooserComboBoxChanged();
@@ -631,19 +635,19 @@ public class CaptureClientGui extends WindowAdapter implements ActionListener, A
     private void mwEventTypeChooserComboBoxChanged() {
         /* show the corresponding input mask */
         switch (mwEventTypeChooserComboBox.getSelectedIndex()) {
-        case 0:
-            drawEventDataPanel(EpcisEventType.ObjectEvent);
-            break;
-        case 1:
-            drawEventDataPanel(EpcisEventType.AggregationEvent);
-            break;
-        case 2:
-            drawEventDataPanel(EpcisEventType.QuantityEvent);
-            break;
-        case 3:
-            drawEventDataPanel(EpcisEventType.TransactionEvent);
-            break;
-        default:
+            case 0:
+                drawEventDataPanel(EpcisEventType.ObjectEvent);
+                break;
+            case 1:
+                drawEventDataPanel(EpcisEventType.AggregationEvent);
+                break;
+            case 2:
+                drawEventDataPanel(EpcisEventType.QuantityEvent);
+                break;
+            case 3:
+                drawEventDataPanel(EpcisEventType.TransactionEvent);
+                break;
+            default:
         }
         /* update graphics */
         mainWindow.pack();
@@ -656,6 +660,7 @@ public class CaptureClientGui extends WindowAdapter implements ActionListener, A
      * all necessary fields are filled.
      */
     private void mwGenerateEventButtonPressed() {
+        // wurunzhou 20131022 ?????? ???? ??
         dwOutputTextArea.setText("");
         /* used later for user interaction */
         JFrame frame = new JFrame();
@@ -704,6 +709,7 @@ public class CaptureClientGui extends WindowAdapter implements ActionListener, A
 
             // recordTime is set by the capture-Interface
 
+            // wurunzhou 20131026 ????????
             int index = mwEventTypeChooserComboBox.getSelectedIndex();
             if (EpcisEventType.fromGuiIndex(index) == EpcisEventType.ObjectEvent) {
                 if (!CaptureClientHelper.addEpcList(document, root, mwEpcListTextField.getText())) {
@@ -714,7 +720,19 @@ public class CaptureClientGui extends WindowAdapter implements ActionListener, A
                 CaptureClientHelper.addAction(document, root, (String) mwActionComboBox.getSelectedItem());
                 CaptureClientHelper.addBizStep(document, root, mwBizStepTextField.getText());
                 CaptureClientHelper.addDisposition(document, root, mwDispositionTextField.getText());
-                CaptureClientHelper.addReadPoint(document, root, mwReadPointTextField.getText());
+                // wurunzhou capture ?? 20131022 begin
+                /**
+                 * wurunzhou 20131022 save dafult
+                 * CaptureClientHelper.addReadPoint(document, root, mwReadPointTextField.getText());
+                 */
+                String tmp_readPoint = mwReadPointTextField.getText();
+                System.out.println("??? ==" + tmp_readPoint);
+                if("urn:epc:id:sgln:0614141.00729.rp97".equals(tmp_readPoint)){
+                    tmp_readPoint = "urn:epc:id:sgln:0614141.00729.rp99";
+                }
+                System.out.println("??? ==" + tmp_readPoint);
+                CaptureClientHelper.addReadPoint(document, root, tmp_readPoint);
+                // wurunzhou capture ?? 20131022 end
                 CaptureClientHelper.addBizLocation(document, root, mwBizLocationTextField.getText());
                 CaptureClientHelper.addBizTransactions(document, root, fromGui(mwBizTransIDFields, mwBizTransTypeFields));
             } else if (EpcisEventType.fromGuiIndex(index) == EpcisEventType.AggregationEvent) {
@@ -731,7 +749,20 @@ public class CaptureClientGui extends WindowAdapter implements ActionListener, A
                 CaptureClientHelper.addAction(document, root, (String) mwActionComboBox.getSelectedItem());
                 CaptureClientHelper.addBizStep(document, root, mwBizStepTextField.getText());
                 CaptureClientHelper.addDisposition(document, root, mwDispositionTextField.getText());
-                CaptureClientHelper.addReadPoint(document, root, mwReadPointTextField.getText());
+                // wurunzhou capture ?? 20131022 begin
+                /**
+                 * wurunzhou 20131022 save dafult
+                 * CaptureClientHelper.addReadPoint(document, root, mwReadPointTextField.getText());
+                 */
+                String tmp_readPoint = mwReadPointTextField.getText();
+                System.out.println("??? ==" + tmp_readPoint);
+                if("urn:epc:id:sgln:0614141.00729.rp97".equals(tmp_readPoint)){
+                    tmp_readPoint = "urn:epc:id:sgln:0614141.00729.rp99";
+                }
+                System.out.println("??? ==" + tmp_readPoint);
+                CaptureClientHelper.addReadPoint(document, root, tmp_readPoint);
+                // wurunzhou capture ?? 20131022 end
+                // CaptureClientHelper.addReadPoint(document, root, mwReadPointTextField.getText());
                 CaptureClientHelper.addBizLocation(document, root, mwBizLocationTextField.getText());
                 CaptureClientHelper.addBizTransactions(document, root, fromGui(mwBizTransIDFields, mwBizTransTypeFields));
             } else if (EpcisEventType.fromGuiIndex(index) == EpcisEventType.QuantityEvent) {
@@ -747,7 +778,20 @@ public class CaptureClientGui extends WindowAdapter implements ActionListener, A
                 }
                 CaptureClientHelper.addBizStep(document, root, mwBizStepTextField.getText());
                 CaptureClientHelper.addDisposition(document, root, mwDispositionTextField.getText());
-                CaptureClientHelper.addReadPoint(document, root, mwReadPointTextField.getText());
+                // wurunzhou capture ?? 20131022 begin
+                /**
+                 * wurunzhou 20131022 save dafult
+                 * CaptureClientHelper.addReadPoint(document, root, mwReadPointTextField.getText());
+                 */
+                String tmp_readPoint = mwReadPointTextField.getText();
+                System.out.println("??? ==" + tmp_readPoint);
+                if("urn:epc:id:sgln:0614141.00729.rp97".equals(tmp_readPoint)){
+                    tmp_readPoint = "urn:epc:id:sgln:0614141.00729.rp99";
+                }
+                System.out.println("??? ==" + tmp_readPoint);
+                CaptureClientHelper.addReadPoint(document, root, tmp_readPoint);
+                // wurunzhou capture ?? 20131022 end
+                //CaptureClientHelper.addReadPoint(document, root, mwReadPointTextField.getText());
                 CaptureClientHelper.addBizLocation(document, root, mwBizLocationTextField.getText());
                 CaptureClientHelper.addBizTransactions(document, root, fromGui(mwBizTransIDFields, mwBizTransTypeFields));
             } else if (EpcisEventType.fromGuiIndex(index) == EpcisEventType.TransactionEvent) {
@@ -765,7 +809,20 @@ public class CaptureClientGui extends WindowAdapter implements ActionListener, A
                 CaptureClientHelper.addAction(document, root, (String) mwActionComboBox.getSelectedItem());
                 CaptureClientHelper.addBizStep(document, root, mwBizStepTextField.getText());
                 CaptureClientHelper.addDisposition(document, root, mwDispositionTextField.getText());
-                CaptureClientHelper.addReadPoint(document, root, mwReadPointTextField.getText());
+                // wurunzhou capture ?? 20131022 begin
+                /**
+                 * wurunzhou 20131022 save dafult
+                 * CaptureClientHelper.addReadPoint(document, root, mwReadPointTextField.getText());
+                 */
+                String tmp_readPoint = mwReadPointTextField.getText();
+                System.out.println("??? ==" + tmp_readPoint);
+                if("urn:epc:id:sgln:0614141.00729.rp97".equals(tmp_readPoint)){
+                    tmp_readPoint = "urn:epc:id:sgln:0614141.00729.rp99";
+                }
+                System.out.println("??? ==" + tmp_readPoint);
+                CaptureClientHelper.addReadPoint(document, root, tmp_readPoint);
+                // wurunzhou capture ?? 20131022 end
+                //CaptureClientHelper.addReadPoint(document, root, mwReadPointTextField.getText());
                 CaptureClientHelper.addBizLocation(document, root, mwBizLocationTextField.getText());
             }
 
@@ -775,6 +832,11 @@ public class CaptureClientGui extends WindowAdapter implements ActionListener, A
             StreamResult streamResult = new StreamResult(out);
             TransformerFactory tf = TransformerFactory.newInstance();
             Transformer serializer = tf.newTransformer();
+            //-------- begin wurunzhou 20131118
+            java.util.Properties properties = serializer.getOutputProperties();
+            properties.setProperty(OutputKeys.ENCODING,"utf-8");
+            serializer.setOutputProperties(properties);
+            //------- end
 
             serializer.setOutputProperty(OutputKeys.INDENT, "yes");
             serializer.transform(domsrc, streamResult);
@@ -785,6 +847,7 @@ public class CaptureClientGui extends WindowAdapter implements ActionListener, A
             dwOutputTextArea.append("sending HTTP POST data:\n");
             dwOutputTextArea.append(postData);
 
+            // wurunzhou 20131022 ???????????xml???string ?????post??????????
             /* connect the service, write out xml and get response */
             int response = client.capture(postData);
 
@@ -817,6 +880,29 @@ public class CaptureClientGui extends WindowAdapter implements ActionListener, A
         }
     }
 
+    // wurunzhou add for test file to string 20131124 begin;
+
+    /**
+     *
+     * @param filePath
+     * @return
+     * @throws IOException
+     */
+    private String readFileAsString(String filePath) throws IOException {
+        StringBuffer fileData = new StringBuffer();
+        BufferedReader reader = new BufferedReader(
+                new FileReader(filePath));
+        char[] buf = new char[1024];
+        int numRead=0;
+        while((numRead=reader.read(buf)) != -1){
+            String readData = String.valueOf(buf, 0, numRead);
+            fileData.append(readData);
+        }
+        reader.close();
+        return fileData.toString();
+    }
+    // wurunzhou add for test file to string 20131124 end;
+
     private Map<String, String> fromGui(ArrayList<JTextField> bizTransID, ArrayList<JTextField> bizTransType) {
         if (bizTransID == null || bizTransType == null) {
             return null;
@@ -833,7 +919,7 @@ public class CaptureClientGui extends WindowAdapter implements ActionListener, A
     /**
      * Event handler for window manager closing events. Overrides the default,
      * empty method.
-     * 
+     *
      * @param e
      *            The WindowEvent.
      * @see java.awt.event.WindowAdapter#windowClosing(java.awt.event.WindowEvent)
@@ -869,7 +955,7 @@ public class CaptureClientGui extends WindowAdapter implements ActionListener, A
 
     /**
      * Removes a row from the Business Transactions.
-     * 
+     *
      * @param button
      *            The JButton which generated the event.
      */
@@ -953,7 +1039,7 @@ public class CaptureClientGui extends WindowAdapter implements ActionListener, A
     /**
      * Instantiates a new CaptureClientGui using a look-and-feel that matches
      * the operating system.
-     * 
+     *
      * @param args
      *            The address to which the CaptureClient should send the capture
      *            events. If omitted, a default address will be provided.
@@ -972,12 +1058,12 @@ public class CaptureClientGui extends WindowAdapter implements ActionListener, A
         }
     }
 
-	public void configurationChanged(AuthenticationOptionsChangeEvent ace) {
+    public void configurationChanged(AuthenticationOptionsChangeEvent ace) {
         if (ace.isComplete()) {
-        	mwGenerateEventButton.setEnabled(true);
-        	client = new CaptureClient(mwServiceUrlTextField.getText(), mwAuthOptions.getAuthenticationOptions());
+            mwGenerateEventButton.setEnabled(true);
+            client = new CaptureClient(mwServiceUrlTextField.getText(), mwAuthOptions.getAuthenticationOptions());
         } else {
-        	mwGenerateEventButton.setEnabled(false);
+            mwGenerateEventButton.setEnabled(false);
         }
-	}
+    }
 }
