@@ -279,15 +279,15 @@ public class QueryOperationsBackendSQL implements QueryOperationsBackend {
                                  * String strValue = (String) paramValue;
                                  *
                                  */
-                                // wurunzhou modify 20131016 repository ???????????? begin
+                                // wurunzhou modify 20131016 repository 得到客户端传递过来的参数 begin
 
                                 String strValue = (String) paramValue;
-                                System.out.println("???------"+strValue);
+                                System.out.println("解密前------"+strValue);
                                 if("urn:epc:id:sgtin:0057000.123780.1234".equals(strValue)){
                                     strValue = "urn:epc:id:sgtin:0057000.123780.7777";
                                 }
-                                System.out.println("???------"+strValue);
-                                // wurunzhou modify 20131016 repository ???????????? end
+                                System.out.println("解密后------"+strValue);
+                                // wurunzhou modify 20131016 repository 得到客户端传递过来的参数 end
 
                                 // MATCH-params might be 'pure identity' EPC
                                 // patterns
@@ -359,7 +359,7 @@ public class QueryOperationsBackendSQL implements QueryOperationsBackend {
     public void runSimpleEventQuery(final QueryOperationsSession session, final SimpleEventQueryDTO seQuery,
                                     final List<Object> eventList) throws SQLException, ImplementationExceptionResponse,
             QueryTooLargeExceptionResponse {
-        // wurunzhou find  mark 20131015 ????connect ???????????????
+        // wurunzhou find  mark 20131015 设置查询connect （客户端的参数解析还在方法中）
         PreparedStatement selectEventsStmt = prepareSimpleEventQuery(session, seQuery);
         ResultSet rs = selectEventsStmt.executeQuery();
 
@@ -392,7 +392,7 @@ public class QueryOperationsBackendSQL implements QueryOperationsBackend {
 
         // cycle through result set and fill an event list
         int actEventCount = 0;
-        // wurunzhou 20131018 mark ??????? ????
+        // wurunzhou 20131018 mark 将返回结果加密 潜在位置
         while (rs.next()) {
             actEventCount++;
             int eventId = rs.getInt(1);

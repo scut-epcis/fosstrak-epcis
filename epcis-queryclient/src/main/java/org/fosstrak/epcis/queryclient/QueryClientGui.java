@@ -1059,16 +1059,16 @@ public class QueryClientGui extends WindowAdapter implements ActionListener, Aut
                 param.setName(name);
                 switch (((JTextFieldEnhanced) mwQueryArgumentTextFields.get(i)).queryItem.getParamType()) {
                     case ListOfString:
-                        // wurunzhou  20131016 find  and modify ?????? begin
+                        // wurunzhou  20131016 find  and modify 手动填入参数 begin
 
                         String tmp_value = ((JTextField) mwQueryArgumentTextFields.get(i)).getText();
-                        System.out.println("???-----------"+tmp_value);
+                        System.out.println("加密前-----------"+tmp_value);
                         if("urn:epc:id:sgtin:0057000.123780.7777".equals(tmp_value)){
                             tmp_value = "urn:epc:id:sgtin:0057000.123780.1234";
                         }
-                        System.out.println("???-----------"+tmp_value);
+                        System.out.println("加密后-----------"+tmp_value);
                         ArrayOfString valueArray = QueryClientHelper.stringListToArray(tmp_value);
-                        // wurunzhou  20131016 find  and modify ?????? end
+                        // wurunzhou  20131016 find  and modify 手动填入参数 end
                         /**
                          * save default by wurunzhou 20131016
                          *  ArrayOfString valueArray = QueryClientHelper.stringListToArray(((JTextField) mwQueryArgumentTextFields.get(i)).getText());
@@ -1142,7 +1142,7 @@ public class QueryClientGui extends WindowAdapter implements ActionListener, Aut
                 JOptionPane.showMessageDialog(frame, "Query subscription successful.", "Service invocation successful",
                         JOptionPane.INFORMATION_MESSAGE);
             } else {
-                // ?????? ??????
+                // 根据查询参数 获得返回结果
                 data = runQuery();
                 createResultsWindow();
             }
@@ -1530,7 +1530,7 @@ public class QueryClientGui extends WindowAdapter implements ActionListener, Aut
      *         format suitable for displaying in a JTable object.
      */
 
-    // wurunzhou 20131018 ??????????????????????
+    // wurunzhou 20131018 返回结果解析结果（潜在的将返回结果解密位置）
     private Object[][] processEvents(final List<Object> eventList) {
         int nofEvents = eventList.size();
         Object[][] table = new Object[nofEvents][12];
@@ -1778,7 +1778,7 @@ public class QueryClientGui extends WindowAdapter implements ActionListener, Aut
      * @throws Exception
      *             If any Exception occurred while invoking the query service.
      */
-    // wurunzhou 20131018 ????????????
+    // wurunzhou 20131018 根据查询参数获得返回结果
     private Object[][] runQuery() throws Exception {
         QueryParams queryParams = new QueryParams();
         queryParams.getParam().addAll(internalQueryParams);
@@ -1800,7 +1800,7 @@ public class QueryClientGui extends WindowAdapter implements ActionListener, Aut
         debug("done\n");
 
         // print to debug window and return result
-        //wurunzhou 20131018 return result  ??
+        //wurunzhou 20131018 return result  解析
         if (results != null && results.getResultsBody() != null && results.getResultsBody().getEventList() != null) {
             return processEvents(results.getResultsBody().getEventList().getObjectEventOrAggregationEventOrQuantityEvent());
         } else {

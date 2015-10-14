@@ -232,7 +232,7 @@ public class CaptureOperationsServlet extends HttpServlet {
                 rsp.setStatus(HttpServletResponse.SC_NOT_ACCEPTABLE);
                 out.println(msg);
             } else if (dbReset != null && dbReset.equalsIgnoreCase("true")) {
-                // wurunzhou 20131022 ??????????? 1
+                // wurunzhou 20131022 这里应该是连接数据库的 1
                 doDbReset(rsp);
             }
             out.flush();
@@ -251,7 +251,7 @@ public class CaptureOperationsServlet extends HttpServlet {
         String responseMsg = "";
         String detailedMsg = "";
         try {
-            // wurunzhou 20131022 ??????????? 2 store data
+            // wurunzhou 20131022 这里应该是连接数据库的 2 store data
             captureOperationsModule.doCapture(is, req.getUserPrincipal());
             rsp.setStatus(HttpServletResponse.SC_OK);
             responseMsg = "EPCIS capture request succeeded.";

@@ -191,7 +191,7 @@ public class CaptureClient implements X509TrustManager, HostnameVerifier {
      */
     public int capture(final String eventXml) throws CaptureClientException {
         try {
-            // wurunzhou 20131022 ??post??? ???String ?xml????????????????
+            // wurunzhou 20131022 最后post的时候 指定了String 是xml格式的，之前确实没有见过这种方式
             return doPost(eventXml, "text/xml");
         } catch (IOException e) {
             throw new CaptureClientException("error communicating with EPCIS cpature interface: " + e.getMessage(), e);
@@ -334,9 +334,9 @@ public class CaptureClient implements X509TrustManager, HostnameVerifier {
             httpsConnection.setHostnameVerifier(this);
             httpsConnection.setSSLSocketFactory(sslContext.getSocketFactory());
         }
-        // add by wurunzhou for ??  20131118 begin
+        // add by wurunzhou for 乱码  20131118 begin
         connection.setRequestProperty("accept-charset", "UTF-8");
-        // add by wurunzhou for ??   20131118 end
+        // add by wurunzhou for 乱码   20131118 end
         connection.setRequestProperty("content-type", contentType);
         try {
             connection.setRequestMethod("POST");

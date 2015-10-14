@@ -1050,7 +1050,7 @@ public class QueryOperationsModule implements EpcisQueryControlInterface {
                 if (queryName.equals("SimpleEventQuery")) {
                     LOG.info("This is a SimpleEventQuery");
                     EventListType eventList = new EventListType();
-                    // wurunzhou 20131015  ???????  ?????
+                    // wurunzhou 20131015  查询参数的集合  代码往下走
                     List<SimpleEventQueryDTO> eventQueries = constructSimpleEventQueries(queryParams);
                     // run queries sequentially
                     // TODO: might want to run them in parallel!
@@ -1063,7 +1063,7 @@ public class QueryOperationsModule implements EpcisQueryControlInterface {
                             orderDirection = eventQuery.getOrderDirection();
                             limit = eventQuery.getLimit();
                         }
-                        // wurunzhou 20131014 ?????????????????????????
+                        // wurunzhou 20131014 根据查询查询得到查询结果。（解析参数依然在方法中）
                         backend.runSimpleEventQuery(session, eventQuery,
                                 eventList.getObjectEventOrAggregationEventOrQuantityEvent());
                     }

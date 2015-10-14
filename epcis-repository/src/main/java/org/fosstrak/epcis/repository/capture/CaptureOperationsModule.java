@@ -295,11 +295,11 @@ public class CaptureOperationsModule {
      */
     public void doCapture(InputStream in, Principal principal) throws SAXException, InternalBusinessException,
             InvalidFormatException {
-        // wurunzhou 20131022 ????????????
+        // wurunzhou 20131022 这里的结构形式还是数据流
         Document document = null;
         try {
             // parse the input into a DOM
-            // wurunzhou 20131022  ?????????
+            // wurunzhou 20131022  中文乱码出现在这里
             //System.out.println("coding : " + document.getXmlEncoding());
             document = parseInput(in, null);
 
@@ -322,7 +322,7 @@ public class CaptureOperationsModule {
                 tx = session.beginTransaction();
                 LOG.debug("DB connection opened.");
                 if (isEPCISDocument(document)) {
-                    // wurunzhou 20131022 ?????? ??????????
+                    // wurunzhou 20131022 继续解析参数 ，很快要连接数据库了
                     processEvents(session, document);
                 } else if (isEPCISMasterDataDocument(document)) {
                     processMasterData(session, document);
@@ -402,7 +402,7 @@ public class CaptureOperationsModule {
                     throw e;
                 }
             });
-            // wurunzhou  20131022 ?????? ?????
+            // wurunzhou  20131022 解析中文乱码 输入输出流
             InputSource ins = new InputSource();
             ins.setEncoding("gb2312");
             ins.setByteStream(in);
@@ -461,7 +461,7 @@ public class CaptureOperationsModule {
      */
     private void processEvents(Session session, Document document) throws DOMException, SAXException,
             InvalidFormatException {
-        // wurunzhou 20131022 ???????? ??????????? ???????document????
+        // wurunzhou 20131022 这里可以看出来， 传递过来的对象已经不是 输入流了，而是document对象了。
         NodeList eventList = document.getElementsByTagName("EventList");
         NodeList events = eventList.item(0).getChildNodes();
 
@@ -475,7 +475,7 @@ public class CaptureOperationsModule {
                     || nodeName.equals(EpcisConstants.QUANTITY_EVENT)
                     || nodeName.equals(EpcisConstants.TRANSACTION_EVENT)) {
                 LOG.debug("processing event " + i + ": '" + nodeName + "'.");
-                // wurunzhou 20131022 ???? event
+                // wurunzhou 20131022 开始解析 event
                 handleEvent(session, eventNode, nodeName);
                 eventCount++;
                 if (eventCount % 50 == 0) {
@@ -503,7 +503,7 @@ public class CaptureOperationsModule {
      */
     private void handleEvent(Session session, final Node eventNode, final String eventType) throws DOMException,
             SAXException, InvalidFormatException {
-        // wurunzhou 20131022 ???? event
+        // wurunzhou 20131022 开始解析 event
         if (eventNode == null) {
             // nothing to do
             return;
@@ -533,7 +533,7 @@ public class CaptureOperationsModule {
         List<BusinessTransaction> bizTransList = null;
         List<EventFieldExtension> fieldNameExtList = new ArrayList<EventFieldExtension>();
 
-        // wurunzhou 20131022 ??event
+        // wurunzhou 20131022 解析event
         for (int i = 0; i < eventNode.getChildNodes().getLength(); i++) {
             curEventNode = eventNode.getChildNodes().item(i);
             String nodeName = curEventNode.getNodeName();
@@ -572,17 +572,17 @@ public class CaptureOperationsModule {
             } else if (nodeName.equals("disposition")) {
                 dispositionUri = curEventNode.getTextContent();
             } else if (nodeName.equals("readPoint")) {
-                // wurunzhou 20131022 ???"urn:epc:id:sgln:0614141.00729.rp99" to "urn:epc:id:sgln:0614141.00729.rp97"
+                // wurunzhou 20131022 解密："urn:epc:id:sgln:0614141.00729.rp99" to "urn:epc:id:sgln:0614141.00729.rp97"
                 Element attrElem = (Element) curEventNode;
                 Node id = attrElem.getElementsByTagName("id").item(0);
                 readPointUri = id.getTextContent();
-                // wurunzhou 20131022 ???? begin
-                System.out.println("??? ==" + readPointUri);
+                // wurunzhou 20131022 解密测试 begin
+                System.out.println("解密前 ==" + readPointUri);
                 if("urn:epc:id:sgln:0614141.00729.rp99".equals(readPointUri)){
                     readPointUri = "urn:epc:id:sgln:0614141.00729.rp97";
                 }
-                System.out.println("??? ==" + readPointUri);
-                // wurunzhou 20131022 ???? end
+                System.out.println("解密后 ==" + readPointUri);
+                // wurunzhou 20131022 解密测试 end
             } else if (nodeName.equals("bizLocation")) {
                 Element attrElem = (Element) curEventNode;
                 Node id = attrElem.getElementsByTagName("id").item(0);
@@ -680,7 +680,7 @@ public class CaptureOperationsModule {
             be.setExtensions(fieldNameExtList);
         }
 
-        // wurunzhou 20131022 ??????? basevent ???????
+        // wurunzhou 20131022 最终打包成一个 basevent 对象存入数据库
         session.save(be);
     }
 

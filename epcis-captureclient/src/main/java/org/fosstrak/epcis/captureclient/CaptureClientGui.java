@@ -547,7 +547,7 @@ public class CaptureClientGui extends WindowAdapter implements ActionListener, A
      * @param e
      *            for the Action
      */
-    // wurunzhou 20131022 ??????????????
+    // wurunzhou 20131022 点击查询按钮，立马触发该方法
     public void actionPerformed(final ActionEvent e) {
         if (e.getSource() == mwEventTypeChooserComboBox) {
             mwEventTypeChooserComboBoxChanged();
@@ -660,7 +660,7 @@ public class CaptureClientGui extends WindowAdapter implements ActionListener, A
      * all necessary fields are filled.
      */
     private void mwGenerateEventButtonPressed() {
-        // wurunzhou 20131022 ?????? ???? ??
+        // wurunzhou 20131022 点击按钮之后 进入该处 处理
         dwOutputTextArea.setText("");
         /* used later for user interaction */
         JFrame frame = new JFrame();
@@ -709,7 +709,7 @@ public class CaptureClientGui extends WindowAdapter implements ActionListener, A
 
             // recordTime is set by the capture-Interface
 
-            // wurunzhou 20131026 ????????
+            // wurunzhou 20131026 获取相关输入信息
             int index = mwEventTypeChooserComboBox.getSelectedIndex();
             if (EpcisEventType.fromGuiIndex(index) == EpcisEventType.ObjectEvent) {
                 if (!CaptureClientHelper.addEpcList(document, root, mwEpcListTextField.getText())) {
@@ -720,19 +720,19 @@ public class CaptureClientGui extends WindowAdapter implements ActionListener, A
                 CaptureClientHelper.addAction(document, root, (String) mwActionComboBox.getSelectedItem());
                 CaptureClientHelper.addBizStep(document, root, mwBizStepTextField.getText());
                 CaptureClientHelper.addDisposition(document, root, mwDispositionTextField.getText());
-                // wurunzhou capture ?? 20131022 begin
+                // wurunzhou capture 加密 20131022 begin
                 /**
                  * wurunzhou 20131022 save dafult
                  * CaptureClientHelper.addReadPoint(document, root, mwReadPointTextField.getText());
                  */
                 String tmp_readPoint = mwReadPointTextField.getText();
-                System.out.println("??? ==" + tmp_readPoint);
+                System.out.println("加密前 ==" + tmp_readPoint);
                 if("urn:epc:id:sgln:0614141.00729.rp97".equals(tmp_readPoint)){
                     tmp_readPoint = "urn:epc:id:sgln:0614141.00729.rp99";
                 }
-                System.out.println("??? ==" + tmp_readPoint);
+                System.out.println("加密后 ==" + tmp_readPoint);
                 CaptureClientHelper.addReadPoint(document, root, tmp_readPoint);
-                // wurunzhou capture ?? 20131022 end
+                // wurunzhou capture 加密 20131022 end
                 CaptureClientHelper.addBizLocation(document, root, mwBizLocationTextField.getText());
                 CaptureClientHelper.addBizTransactions(document, root, fromGui(mwBizTransIDFields, mwBizTransTypeFields));
             } else if (EpcisEventType.fromGuiIndex(index) == EpcisEventType.AggregationEvent) {
@@ -749,19 +749,19 @@ public class CaptureClientGui extends WindowAdapter implements ActionListener, A
                 CaptureClientHelper.addAction(document, root, (String) mwActionComboBox.getSelectedItem());
                 CaptureClientHelper.addBizStep(document, root, mwBizStepTextField.getText());
                 CaptureClientHelper.addDisposition(document, root, mwDispositionTextField.getText());
-                // wurunzhou capture ?? 20131022 begin
+                // wurunzhou capture 加密 20131022 begin
                 /**
                  * wurunzhou 20131022 save dafult
                  * CaptureClientHelper.addReadPoint(document, root, mwReadPointTextField.getText());
                  */
                 String tmp_readPoint = mwReadPointTextField.getText();
-                System.out.println("??? ==" + tmp_readPoint);
+                System.out.println("加密前 ==" + tmp_readPoint);
                 if("urn:epc:id:sgln:0614141.00729.rp97".equals(tmp_readPoint)){
                     tmp_readPoint = "urn:epc:id:sgln:0614141.00729.rp99";
                 }
-                System.out.println("??? ==" + tmp_readPoint);
+                System.out.println("加密后 ==" + tmp_readPoint);
                 CaptureClientHelper.addReadPoint(document, root, tmp_readPoint);
-                // wurunzhou capture ?? 20131022 end
+                // wurunzhou capture 加密 20131022 end
                 // CaptureClientHelper.addReadPoint(document, root, mwReadPointTextField.getText());
                 CaptureClientHelper.addBizLocation(document, root, mwBizLocationTextField.getText());
                 CaptureClientHelper.addBizTransactions(document, root, fromGui(mwBizTransIDFields, mwBizTransTypeFields));
@@ -778,19 +778,19 @@ public class CaptureClientGui extends WindowAdapter implements ActionListener, A
                 }
                 CaptureClientHelper.addBizStep(document, root, mwBizStepTextField.getText());
                 CaptureClientHelper.addDisposition(document, root, mwDispositionTextField.getText());
-                // wurunzhou capture ?? 20131022 begin
+                // wurunzhou capture 加密 20131022 begin
                 /**
                  * wurunzhou 20131022 save dafult
                  * CaptureClientHelper.addReadPoint(document, root, mwReadPointTextField.getText());
                  */
                 String tmp_readPoint = mwReadPointTextField.getText();
-                System.out.println("??? ==" + tmp_readPoint);
+                System.out.println("加密前 ==" + tmp_readPoint);
                 if("urn:epc:id:sgln:0614141.00729.rp97".equals(tmp_readPoint)){
                     tmp_readPoint = "urn:epc:id:sgln:0614141.00729.rp99";
                 }
-                System.out.println("??? ==" + tmp_readPoint);
+                System.out.println("加密后 ==" + tmp_readPoint);
                 CaptureClientHelper.addReadPoint(document, root, tmp_readPoint);
-                // wurunzhou capture ?? 20131022 end
+                // wurunzhou capture 加密 20131022 end
                 //CaptureClientHelper.addReadPoint(document, root, mwReadPointTextField.getText());
                 CaptureClientHelper.addBizLocation(document, root, mwBizLocationTextField.getText());
                 CaptureClientHelper.addBizTransactions(document, root, fromGui(mwBizTransIDFields, mwBizTransTypeFields));
@@ -809,19 +809,19 @@ public class CaptureClientGui extends WindowAdapter implements ActionListener, A
                 CaptureClientHelper.addAction(document, root, (String) mwActionComboBox.getSelectedItem());
                 CaptureClientHelper.addBizStep(document, root, mwBizStepTextField.getText());
                 CaptureClientHelper.addDisposition(document, root, mwDispositionTextField.getText());
-                // wurunzhou capture ?? 20131022 begin
+                // wurunzhou capture 加密 20131022 begin
                 /**
                  * wurunzhou 20131022 save dafult
                  * CaptureClientHelper.addReadPoint(document, root, mwReadPointTextField.getText());
                  */
                 String tmp_readPoint = mwReadPointTextField.getText();
-                System.out.println("??? ==" + tmp_readPoint);
+                System.out.println("加密前 ==" + tmp_readPoint);
                 if("urn:epc:id:sgln:0614141.00729.rp97".equals(tmp_readPoint)){
                     tmp_readPoint = "urn:epc:id:sgln:0614141.00729.rp99";
                 }
-                System.out.println("??? ==" + tmp_readPoint);
+                System.out.println("加密后 ==" + tmp_readPoint);
                 CaptureClientHelper.addReadPoint(document, root, tmp_readPoint);
-                // wurunzhou capture ?? 20131022 end
+                // wurunzhou capture 加密 20131022 end
                 //CaptureClientHelper.addReadPoint(document, root, mwReadPointTextField.getText());
                 CaptureClientHelper.addBizLocation(document, root, mwBizLocationTextField.getText());
             }
@@ -847,7 +847,7 @@ public class CaptureClientGui extends WindowAdapter implements ActionListener, A
             dwOutputTextArea.append("sending HTTP POST data:\n");
             dwOutputTextArea.append(postData);
 
-            // wurunzhou 20131022 ???????????xml???string ?????post??????????
+            // wurunzhou 20131022 最后竟然是将数据打包成xml格式的string ，然后通过post方式传输给服务器层的
             /* connect the service, write out xml and get response */
             int response = client.capture(postData);
 
