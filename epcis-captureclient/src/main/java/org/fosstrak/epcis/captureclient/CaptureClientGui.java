@@ -727,6 +727,7 @@ public class CaptureClientGui extends WindowAdapter implements ActionListener, A
                  */
                 String tmp_readPoint = mwReadPointTextField.getText();
 
+
                 System.out.println("加密前 ==" + tmp_readPoint);
                 if("urn:epc:id:sgln:0614141.00729.rp97".equals(tmp_readPoint)){
                     tmp_readPoint = "urn:epc:id:sgln:0614141.00729.rp99";
