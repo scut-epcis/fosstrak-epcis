@@ -206,7 +206,9 @@ public class CaptureClientGui extends WindowAdapter implements ActionListener, A
     private void initWindow() {
         JFrame.setDefaultLookAndFeelDecorated(true);
 
-        mainWindow = new JFrame("EPCIS capture interface client");
+        // wurunzhou 20151024 ui change to chinese
+//        mainWindow = new JFrame("EPCIS capture interface client");
+        mainWindow = new JFrame("EPCIS 写入客户端");
         mainWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         mainWindow.setResizable(false);
 
@@ -224,16 +226,27 @@ public class CaptureClientGui extends WindowAdapter implements ActionListener, A
         mwButtonPanel = new JPanel();
         mwMainPanel.add(mwButtonPanel);
 
-        mwConfigPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createTitledBorder("Configuration"),
+        // mwConfigPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createTitledBorder("Configuration"),
+      //  BorderFactory.createEmptyBorder(5, 5, 5, 5)));
+        mwConfigPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createTitledBorder("配置"),
                 BorderFactory.createEmptyBorder(5, 5, 5, 5)));
 
-        mwEventTypePanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createTitledBorder("Event type"),
+        mwEventTypePanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createTitledBorder("事件类型"),
                 BorderFactory.createEmptyBorder(5, 5, 5, 5)));
 
-        mwEventDataPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createTitledBorder("Event data"),
+        //        mwEventTypePanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createTitledBorder("Event type"),
+        //BorderFactory.createEmptyBorder(5, 5, 5, 5)));
+
+        mwEventDataPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createTitledBorder("事件数据"),
                 BorderFactory.createEmptyBorder(5, 5, 5, 5)));
 
-        mwServiceUrlLabel = new JLabel("Capture interface URL: ");
+        //mwEventDataPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createTitledBorder("Event data"),
+        // BorderFactory.createEmptyBorder(5, 5, 5, 5)));
+
+
+        // wurunzhou 20151024 ui change to chinese
+        //mwServiceUrlLabel = new JLabel("Capture interface URL: ");
+        mwServiceUrlLabel = new JLabel("EPCIS 写入地址");
         mwServiceUrlTextField = new JTextField(client.getCaptureUrl(), 75);
         mwAuthOptions = new AuthenticationOptionsPanel(this);
         
@@ -258,8 +271,9 @@ public class CaptureClientGui extends WindowAdapter implements ActionListener, A
         	
         });
 
-        
-        mwShowDebugWindowCheckBox = new JCheckBox("Show debug window", false);
+        // wurunzhou  20151024
+        //mwShowDebugWindowCheckBox = new JCheckBox("Show debug window", false);
+        mwShowDebugWindowCheckBox = new JCheckBox("显示调试窗口", false);
         mwShowDebugWindowCheckBox.addActionListener(this);
 
         GridBagConstraints c = new GridBagConstraints();
@@ -287,59 +301,74 @@ public class CaptureClientGui extends WindowAdapter implements ActionListener, A
         mwEventTypeChooserComboBox.addActionListener(this);
         mwEventTypePanel.add(mwEventTypeChooserComboBox);
 
-        mwGenerateEventButton = new JButton("Generate event");
+
+
+        // mwGenerateEventButton = new JButton("Generate event");
+        mwGenerateEventButton = new JButton("生成事件");
         mwGenerateEventButton.addActionListener(this);
         mwButtonPanel.add(mwGenerateEventButton);
 
         // instantiate all event data input fields, their default values and
         // descriptions
-        mwEventTimeLabel = new JLabel("event time");
+        // mwEventTimeLabel = new JLabel("event time");
+        mwEventTimeLabel = new JLabel("发生时间");
         mwEventTimeTextField = new JTextField(CaptureClientHelper.format(Calendar.getInstance()));
         mwEventTimeTextField.setToolTipText(CaptureClientHelper.toolTipDate);
 
-        mwEventTimeZoneOffsetLabel = new JLabel("time zone offset");
+        // mwEventTimeZoneOffsetLabel = new JLabel("time zone offset");
+        mwEventTimeZoneOffsetLabel = new JLabel("时间微调");
         mwEventTimeZoneOffsetTextField = new JTextField(CaptureClientHelper.getTimeZone(Calendar.getInstance()));
 
-        mwActionLabel = new JLabel("action");
+        // mwActionLabel = new JLabel("action");
+        mwActionLabel = new JLabel("事件类型");
         mwActionComboBox = new JComboBox<String>(CaptureClientHelper.ACTIONS);
 
-        mwBizStepLabel = new JLabel("business step");
+        // mwBizStepLabel = new JLabel("business step");
+        mwBizStepLabel = new JLabel("业务步骤");
         mwBizStepTextField = new JTextField();
         mwBizStepTextField.setToolTipText(CaptureClientHelper.toolTipUri + CaptureClientHelper.toolTipOptional);
 
-        mwDispositionLabel = new JLabel("disposition");
+        // mwDispositionLabel = new JLabel("disposition");
+        mwDispositionLabel = new JLabel("添加描述");
         mwDispositionTextField = new JTextField();
         mwDispositionTextField.setToolTipText(CaptureClientHelper.toolTipUri + CaptureClientHelper.toolTipOptional);
 
-        mwReadPointLabel = new JLabel("read point");
+        mwReadPointLabel = new JLabel("读取点");
         mwReadPointTextField = new JTextField();
         mwReadPointTextField.setToolTipText(CaptureClientHelper.toolTipUri + CaptureClientHelper.toolTipOptional);
 
-        mwBizLocationLabel = new JLabel("business location");
+        // mwBizLocationLabel = new JLabel("business location");
+        mwBizLocationLabel = new JLabel("业务发生地点");
         mwBizLocationTextField = new JTextField();
         mwBizLocationTextField.setToolTipText(CaptureClientHelper.toolTipUri + CaptureClientHelper.toolTipOptional);
 
-        mwBizTransactionLabel = new JLabel("business transaction");
+        // mwBizTransactionLabel = new JLabel("business transaction");
+        mwBizTransactionLabel = new JLabel("交易往来");
         mwBizTransactionTextField = new JTextField();
         mwBizTransactionTextField.setToolTipText(CaptureClientHelper.toolTipUri + CaptureClientHelper.toolTipOptional);
 
-        mwEpcListLabel = new JLabel("EPCs");
+        // mwEpcListLabel = new JLabel("EPCs");
+        mwEpcListLabel = new JLabel("电子产品代码（EPCs）");
         mwEpcListTextField = new JTextField();
         mwEpcListTextField.setToolTipText(CaptureClientHelper.toolTipUris);
 
-        mwParentIDLabel = new JLabel("parent object");
+        // mwParentIDLabel = new JLabel("parent object");
+        mwParentIDLabel = new JLabel("父事件对象");
         mwParentIDTextField = new JTextField();
         mwParentIDTextField.setToolTipText(CaptureClientHelper.toolTipUri);
 
-        mwChildEPCsLabel = new JLabel("child EPCs");
+        // mwChildEPCsLabel = new JLabel("child EPCs");
+        mwChildEPCsLabel = new JLabel("子EPCs");
         mwChildEPCsTextField = new JTextField();
         mwChildEPCsTextField.setToolTipText(CaptureClientHelper.toolTipUris + CaptureClientHelper.toolTipOptional);
 
-        mwEpcClassLabel = new JLabel("EPC class");
+        // mwEpcClassLabel = new JLabel("EPC class");
+        mwEpcClassLabel = new JLabel("EPC 标准");
         mwEpcClassTextField = new JTextField();
         mwChildEPCsTextField.setToolTipText(CaptureClientHelper.toolTipUri);
 
-        mwQuantityLabel = new JLabel("quantity");
+        // mwQuantityLabel = new JLabel("quantity");
+        mwQuantityLabel = new JLabel("数量");
         mwQuantityTextField = new JTextField();
         mwChildEPCsTextField.setToolTipText(CaptureClientHelper.toolTipInteger);
 
@@ -361,7 +390,8 @@ public class CaptureClientGui extends WindowAdapter implements ActionListener, A
         mwEventDataPanel.add(mwEventDataExamplesPanel);
 
         drawEventDataPanel(EpcisEventType.ObjectEvent);
-        mwFillInExampleButton = new JButton("Fill in example");
+        // mwFillInExampleButton = new JButton("Fill in example");
+        mwFillInExampleButton = new JButton("实例");
         mwFillInExampleButton.addActionListener(this);
         mwEventDataExamplesPanel.add(mwFillInExampleButton, BorderLayout.EAST);
 
