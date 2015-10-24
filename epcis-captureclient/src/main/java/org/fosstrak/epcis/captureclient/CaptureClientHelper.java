@@ -20,15 +20,12 @@
 
 package org.fosstrak.epcis.captureclient;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URL;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.List;
-import java.util.Map;
-import java.util.StringTokenizer;
-import java.util.TimeZone;
+import java.util.*;
 import java.util.Map.Entry;
 
 import javax.swing.ImageIcon;
@@ -43,6 +40,8 @@ import org.w3c.dom.Element;
  * @author Marco Steybe
  */
 public class CaptureClientHelper {
+
+
 
     /**
      * Miscellaneous numeric formats used in formatting.
@@ -73,10 +72,36 @@ public class CaptureClientHelper {
     public static final String[] EPCIS_EVENT_NAMES = {
             "Object event", "Aggregation event", "Quantity event", "Transaction event" };
 
+
+    // wurunzhou add at 20151024 for setting UI chinese
+    private Properties loadProperties(String capturecn_FILE1) {
+        Properties props = new Properties();
+        InputStream is = getClass().getResourceAsStream(capturecn_FILE1);
+        if (is != null) {
+            try {
+                props.load(new InputStreamReader(is,"UTF-8"));
+                is.close();
+            } catch (IOException e) {
+                System.out.println("Unable to load properties from " + capturecn_FILE1 + ". Using defaults.");
+            }
+        } else {
+            System.out.println("Unable to load properties from file " + capturecn_FILE1 + ". Using defaults.");
+        }
+        return props;
+    }
+
     public enum EpcisEventType {
 
-        ObjectEvent(0, "Object event"), AggregationEvent(1, "Aggregation event"), QuantityEvent(2, "Quantity event"),
-        TransactionEvent(3, "Transaction event");
+        // wurunzhou save orignal 20151024
+        // ObjectEvent(0, "Object event"),
+        // AggregationEvent(1, "Aggregation event"),
+        // QuantityEvent(2, "Quantity event"),
+        // TransactionEvent(3, "Transaction event");
+        // 为何这里不用properties 进行处置，那是因为 本身为枚举类型，不能使用properties引用
+        ObjectEvent(0, "对象事件"),
+        AggregationEvent(1, "混合事件"),
+        QuantityEvent(2, "频率事件"),
+        TransactionEvent(3, "交易事件");
 
         private int guiIndex;
         private String guiName;

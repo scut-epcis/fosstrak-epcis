@@ -28,12 +28,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.Map;
+import java.io.*;
+import java.util.*;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -81,6 +77,12 @@ import org.w3c.dom.Element;
  * @author David Gubler
  */
 public class CaptureClientGui extends WindowAdapter implements ActionListener, AuthenticationOptionsChangeListener {
+
+
+
+
+    // wurunzhou add capturecn.properties
+    private static final String capturecn_FILE = "/capturecn.properties";
 
     /**
      * The client through which the EPCISEvents will be sent to the repository's
@@ -204,11 +206,16 @@ public class CaptureClientGui extends WindowAdapter implements ActionListener, A
      * Initializes the GUI window.
      */
     private void initWindow() {
+
+        Properties props = loadProperties(capturecn_FILE);
+      // if (props != null) {
+      //      captureUrl = props.getProperty(PROPERTY_CAPTURE_URL);
+      //  }
         JFrame.setDefaultLookAndFeelDecorated(true);
 
         // wurunzhou 20151024 ui change to chinese
 //        mainWindow = new JFrame("EPCIS capture interface client");
-        mainWindow = new JFrame("EPCIS 写入客户端");
+        mainWindow = new JFrame(props.getProperty("EPCIS.capture.interface.client"));
         mainWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         mainWindow.setResizable(false);
 
@@ -228,16 +235,16 @@ public class CaptureClientGui extends WindowAdapter implements ActionListener, A
 
         // mwConfigPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createTitledBorder("Configuration"),
       //  BorderFactory.createEmptyBorder(5, 5, 5, 5)));
-        mwConfigPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createTitledBorder("配置"),
+        mwConfigPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createTitledBorder(props.getProperty("Configuration")),
                 BorderFactory.createEmptyBorder(5, 5, 5, 5)));
 
-        mwEventTypePanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createTitledBorder("事件类型"),
+        mwEventTypePanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createTitledBorder(props.getProperty("Event.type")),
                 BorderFactory.createEmptyBorder(5, 5, 5, 5)));
 
         //        mwEventTypePanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createTitledBorder("Event type"),
         //BorderFactory.createEmptyBorder(5, 5, 5, 5)));
 
-        mwEventDataPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createTitledBorder("事件数据"),
+        mwEventDataPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createTitledBorder(props.getProperty("Event.data")),
                 BorderFactory.createEmptyBorder(5, 5, 5, 5)));
 
         //mwEventDataPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createTitledBorder("Event data"),
@@ -246,7 +253,7 @@ public class CaptureClientGui extends WindowAdapter implements ActionListener, A
 
         // wurunzhou 20151024 ui change to chinese
         //mwServiceUrlLabel = new JLabel("Capture interface URL: ");
-        mwServiceUrlLabel = new JLabel("EPCIS 写入地址");
+        mwServiceUrlLabel = new JLabel(props.getProperty("Capture.interface.URL"));
         mwServiceUrlTextField = new JTextField(client.getCaptureUrl(), 75);
         mwAuthOptions = new AuthenticationOptionsPanel(this);
         
@@ -273,7 +280,7 @@ public class CaptureClientGui extends WindowAdapter implements ActionListener, A
 
         // wurunzhou  20151024
         //mwShowDebugWindowCheckBox = new JCheckBox("Show debug window", false);
-        mwShowDebugWindowCheckBox = new JCheckBox("显示调试窗口", false);
+        mwShowDebugWindowCheckBox = new JCheckBox(props.getProperty("Show.debug.window"), false);
         mwShowDebugWindowCheckBox.addActionListener(this);
 
         GridBagConstraints c = new GridBagConstraints();
@@ -304,71 +311,72 @@ public class CaptureClientGui extends WindowAdapter implements ActionListener, A
 
 
         // mwGenerateEventButton = new JButton("Generate event");
-        mwGenerateEventButton = new JButton("生成事件");
+        mwGenerateEventButton = new JButton(props.getProperty("Generate.event"));
         mwGenerateEventButton.addActionListener(this);
         mwButtonPanel.add(mwGenerateEventButton);
 
         // instantiate all event data input fields, their default values and
         // descriptions
         // mwEventTimeLabel = new JLabel("event time");
-        mwEventTimeLabel = new JLabel("发生时间");
+        mwEventTimeLabel = new JLabel(props.getProperty("event.time"));
         mwEventTimeTextField = new JTextField(CaptureClientHelper.format(Calendar.getInstance()));
         mwEventTimeTextField.setToolTipText(CaptureClientHelper.toolTipDate);
 
         // mwEventTimeZoneOffsetLabel = new JLabel("time zone offset");
-        mwEventTimeZoneOffsetLabel = new JLabel("时间微调");
+        mwEventTimeZoneOffsetLabel = new JLabel(props.getProperty("time.zone.offset"));
         mwEventTimeZoneOffsetTextField = new JTextField(CaptureClientHelper.getTimeZone(Calendar.getInstance()));
 
         // mwActionLabel = new JLabel("action");
-        mwActionLabel = new JLabel("事件类型");
+        mwActionLabel = new JLabel(props.getProperty("action"));
         mwActionComboBox = new JComboBox<String>(CaptureClientHelper.ACTIONS);
 
         // mwBizStepLabel = new JLabel("business step");
-        mwBizStepLabel = new JLabel("业务步骤");
+        mwBizStepLabel = new JLabel(props.getProperty("business.step"));
         mwBizStepTextField = new JTextField();
         mwBizStepTextField.setToolTipText(CaptureClientHelper.toolTipUri + CaptureClientHelper.toolTipOptional);
 
         // mwDispositionLabel = new JLabel("disposition");
-        mwDispositionLabel = new JLabel("添加描述");
+        mwDispositionLabel = new JLabel(props.getProperty("disposition"));
         mwDispositionTextField = new JTextField();
         mwDispositionTextField.setToolTipText(CaptureClientHelper.toolTipUri + CaptureClientHelper.toolTipOptional);
 
-        mwReadPointLabel = new JLabel("读取点");
+        // mwReadPointLabel = new JLabel("read point");
+        mwReadPointLabel = new JLabel(props.getProperty("read.point"));
         mwReadPointTextField = new JTextField();
         mwReadPointTextField.setToolTipText(CaptureClientHelper.toolTipUri + CaptureClientHelper.toolTipOptional);
 
         // mwBizLocationLabel = new JLabel("business location");
-        mwBizLocationLabel = new JLabel("业务发生地点");
+        mwBizLocationLabel = new JLabel(props.getProperty("business.location"));
         mwBizLocationTextField = new JTextField();
         mwBizLocationTextField.setToolTipText(CaptureClientHelper.toolTipUri + CaptureClientHelper.toolTipOptional);
 
         // mwBizTransactionLabel = new JLabel("business transaction");
-        mwBizTransactionLabel = new JLabel("交易往来");
+        mwBizTransactionLabel = new JLabel(props.getProperty("business.transaction"));
         mwBizTransactionTextField = new JTextField();
         mwBizTransactionTextField.setToolTipText(CaptureClientHelper.toolTipUri + CaptureClientHelper.toolTipOptional);
 
         // mwEpcListLabel = new JLabel("EPCs");
-        mwEpcListLabel = new JLabel("电子产品代码（EPCs）");
+        mwEpcListLabel = new JLabel(props.getProperty("EPCs"));
         mwEpcListTextField = new JTextField();
         mwEpcListTextField.setToolTipText(CaptureClientHelper.toolTipUris);
 
         // mwParentIDLabel = new JLabel("parent object");
-        mwParentIDLabel = new JLabel("父事件对象");
+        mwParentIDLabel = new JLabel(props.getProperty("parent.object"));
         mwParentIDTextField = new JTextField();
         mwParentIDTextField.setToolTipText(CaptureClientHelper.toolTipUri);
 
         // mwChildEPCsLabel = new JLabel("child EPCs");
-        mwChildEPCsLabel = new JLabel("子EPCs");
+        mwChildEPCsLabel = new JLabel(props.getProperty("child.EPCs"));
         mwChildEPCsTextField = new JTextField();
         mwChildEPCsTextField.setToolTipText(CaptureClientHelper.toolTipUris + CaptureClientHelper.toolTipOptional);
 
         // mwEpcClassLabel = new JLabel("EPC class");
-        mwEpcClassLabel = new JLabel("EPC 标准");
+        mwEpcClassLabel = new JLabel(props.getProperty("EPC.class"));
         mwEpcClassTextField = new JTextField();
         mwChildEPCsTextField.setToolTipText(CaptureClientHelper.toolTipUri);
 
         // mwQuantityLabel = new JLabel("quantity");
-        mwQuantityLabel = new JLabel("数量");
+        mwQuantityLabel = new JLabel(props.getProperty("quantity"));
         mwQuantityTextField = new JTextField();
         mwChildEPCsTextField.setToolTipText(CaptureClientHelper.toolTipInteger);
 
@@ -391,7 +399,7 @@ public class CaptureClientGui extends WindowAdapter implements ActionListener, A
 
         drawEventDataPanel(EpcisEventType.ObjectEvent);
         // mwFillInExampleButton = new JButton("Fill in example");
-        mwFillInExampleButton = new JButton("实例");
+        mwFillInExampleButton = new JButton(props.getProperty("Fill.in.example"));
         mwFillInExampleButton.addActionListener(this);
         mwEventDataExamplesPanel.add(mwFillInExampleButton, BorderLayout.EAST);
 
@@ -794,6 +802,7 @@ public class CaptureClientGui extends WindowAdapter implements ActionListener, A
                 }
                 CaptureClientHelper.addAction(document, root, (String) mwActionComboBox.getSelectedItem());
                 CaptureClientHelper.addBizStep(document, root, mwBizStepTextField.getText());
+                CaptureClientHelper.addBizStep(document, root, mwBizStepTextField.getText());
                 CaptureClientHelper.addDisposition(document, root, mwDispositionTextField.getText());
                 CaptureClientHelper.addReadPoint(document, root, mwReadPointTextField.getText());
                 CaptureClientHelper.addBizLocation(document, root, mwBizLocationTextField.getText());
@@ -1010,4 +1019,21 @@ public class CaptureClientGui extends WindowAdapter implements ActionListener, A
         	mwGenerateEventButton.setEnabled(false);
         }
 	}
+
+    // wurunzhou add at 20151024 for setting UI chinese
+    private Properties loadProperties(String capturecn_FILE1) {
+        Properties props = new Properties();
+        InputStream is = getClass().getResourceAsStream(capturecn_FILE1);
+        if (is != null) {
+            try {
+                props.load(new InputStreamReader(is,"UTF-8"));
+                is.close();
+            } catch (IOException e) {
+                System.out.println("Unable to load properties from " + capturecn_FILE1 + ". Using defaults.");
+            }
+        } else {
+            System.out.println("Unable to load properties from file " + capturecn_FILE1 + ". Using defaults.");
+        }
+        return props;
+    }
 }

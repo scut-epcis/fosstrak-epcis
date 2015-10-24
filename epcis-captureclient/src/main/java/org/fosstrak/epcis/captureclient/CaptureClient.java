@@ -71,6 +71,7 @@ public class CaptureClient implements X509TrustManager, HostnameVerifier {
     private static final String PROPERTY_CAPTURE_URL = "default.url";
     private static final String DEFAULT_CAPTURE_URL = "http://demo.fosstrak.org/epcis/capture";
 
+
     /**
      * The URL String of the EPCIS Capture Interface.
      */

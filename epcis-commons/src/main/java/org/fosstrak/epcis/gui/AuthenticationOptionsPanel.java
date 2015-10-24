@@ -20,13 +20,17 @@
 
 package org.fosstrak.epcis.gui;
 
-import java.awt.FlowLayout;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Properties;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -53,11 +57,19 @@ import org.fosstrak.epcis.utils.AuthenticationType;
  */
 public class AuthenticationOptionsPanel extends JPanel implements ActionListener {
 
+    // wurunzhou add capturecn.properties
+    private static final String capturecn_FILE = "/capturecn.properties";
+
     private static final long serialVersionUID = -6085494400041808090L;
 
     private static final Map<String, AuthenticationType> authTypes = new LinkedHashMap<String, AuthenticationType>();
     static {
-    	authTypes.put("None", AuthenticationType.NONE);
+
+        // wurunzhou 20151024
+        // authTypes.put("None", AuthenticationType.NONE);
+        // authTypes.put("Basic", AuthenticationType.BASIC);
+        // authTypes.put("X.509 Certificate", AuthenticationType.HTTPS_WITH_CLIENT_CERT);
+    	authTypes.put("Node", AuthenticationType.NONE);
     	authTypes.put("Basic", AuthenticationType.BASIC);
     	authTypes.put("X.509 Certificate", AuthenticationType.HTTPS_WITH_CLIENT_CERT);
     }
@@ -74,10 +86,21 @@ public class AuthenticationOptionsPanel extends JPanel implements ActionListener
         super(new FlowLayout(FlowLayout.LEFT, 5, 0));
         this.helper = helper;
 
-        authTypeLabel = new JLabel("Authentication Mode:");
+        // wurunzhou 20151024 for Setting Chinese  UI
+        Properties props = loadProperties(capturecn_FILE);
+
+        // wurunzhou 20151024
+        // authTypeLabel = new JLabel("Authentication Mode:");
+        authTypeLabel = new JLabel(props.getProperty("Authentication.Mode"));
+
+
         add(authTypeLabel);
 
-        authTypeSelector = new JComboBox<String>(authTypes.keySet().toArray(new String[0]));
+        // wurunzhou 20151025 for Chinese
+        String[] languages = new String[] {props.getProperty("None"), props.getProperty("Basic"), props.getProperty("X.509.Certificate")};
+        // authTypeSelector = new JComboBox<String>(authTypes.keySet().toArray(new String[0]));
+        authTypeSelector = new JComboBox<String>(languages);
+
         authTypeSelector.addActionListener(this);
         add(authTypeSelector);
 
@@ -131,6 +154,7 @@ public class AuthenticationOptionsPanel extends JPanel implements ActionListener
             return true;
         }
     }
+
 
     private class BasicOptionsPanel extends JPanel implements DocumentListener, OptionsPanel {
 
@@ -266,5 +290,22 @@ public class AuthenticationOptionsPanel extends JPanel implements ActionListener
         public void removeUpdate(DocumentEvent e) {
             helper.configurationChanged(new AuthenticationOptionsChangeEvent(this, isComplete()));
         }
+    }
+
+    // wurunzhou add at 20151024 for setting UI chinese
+    private Properties loadProperties(String capturecn_FILE1) {
+        Properties props = new Properties();
+        InputStream is = getClass().getResourceAsStream(capturecn_FILE1);
+        if (is != null) {
+            try {
+                props.load(new InputStreamReader(is,"UTF-8"));
+                is.close();
+            } catch (IOException e) {
+                System.out.println("Unable to load properties from " + capturecn_FILE1 + ". Using defaults.");
+            }
+        } else {
+            System.out.println("Unable to load properties from file " + capturecn_FILE1 + ". Using defaults.");
+        }
+        return props;
     }
 }
