@@ -28,18 +28,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -90,6 +83,11 @@ import org.fosstrak.epcis.utils.TimeParser;
  * @author David Gubler
  */
 public class QueryClientGui extends WindowAdapter implements ActionListener, AuthenticationOptionsChangeListener {
+
+
+
+    // wurunzhou add at 20151025
+    private static final String  querycn_FILE = "/querycn.properties";
 
     /**
      * The enumeration of all possible query parameter types.
@@ -254,6 +252,9 @@ public class QueryClientGui extends WindowAdapter implements ActionListener, Aut
      * Initialized all the possible Query Parameters.
      */
     private void generateParamHashMap() {
+        // wurunzhou add at 20151025
+        Properties props =  loadProperties1(querycn_FILE);
+
         QueryItem newEntry = new QueryItem();
         queryParamsUserText = new LinkedHashMap<String, QueryItem>();
         queryParamsQueryText = new LinkedHashMap<String, QueryItem>();
@@ -262,7 +263,9 @@ public class QueryClientGui extends WindowAdapter implements ActionListener, Aut
         newEntry.setParamType(ParameterType.noType);
         newEntry.setQueryText("");
         newEntry.setRequired(false);
-        newEntry.setUserText("ignore");
+        // wurunzhou edit at 20151025
+        //newEntry.setUserText("ignore");
+        newEntry.setUserText(props.getProperty("ignore"));
         queryParamsUserText.put(newEntry.getUserText(), newEntry);
         queryParamsQueryText.put(newEntry.getQueryText(), newEntry);
 
@@ -509,7 +512,12 @@ public class QueryClientGui extends WindowAdapter implements ActionListener, Aut
     private void drawMainWindow(String queryUrl) {
         JFrame.setDefaultLookAndFeelDecorated(true);
 
-        mainWindow = new JFrame("EPCIS query interface client");
+        // wurunzhou edit at 20151025
+        //
+        final Properties props = loadProperties1(querycn_FILE);
+        // mainWindow = new JFrame("EPCIS query interface client");
+        mainWindow = new JFrame(props.getProperty("EPCIS.query.interface.client"));
+
         mainWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         mainWindow.setResizable(false);
 
@@ -532,17 +540,20 @@ public class QueryClientGui extends WindowAdapter implements ActionListener, Aut
         mwSubscriptionPanel.setLayout(new GridBagLayout());
         mwMainPanel.add(mwQueryPanel);
 
-        isSubscribed = new JCheckBox("Subscribe this query");
+        //isSubscribed = new JCheckBox("Subscribe this query");
+        isSubscribed = new JCheckBox(props.getProperty("Subscribe.this.query"));
         mwMainPanel.add(isSubscribed);
         isSubscribed.addActionListener(new ActionListener() {
             public void actionPerformed(final ActionEvent e) {
                 if (mwSubscriptionPanel.isVisible()) {
                     mwSubscriptionPanel.setVisible(false);
-                    mwRunQueryButton.setText("Run Query");
+                      mwRunQueryButton.setText("Run Query");
+                    //mwRunQueryButton.setText(props.getProperty("Run.Query"));
                     mainWindow.pack();
                 } else {
                     mwSubscriptionPanel.setVisible(true);
                     mwRunQueryButton.setText("Subscribe Query");
+                    //mwRunQueryButton.setText(props.getProperty("Subscribe.Query"));
                     mainWindow.pack();
                 }
             }
@@ -553,35 +564,53 @@ public class QueryClientGui extends WindowAdapter implements ActionListener, Aut
         mwButtonPanel = new JPanel();
         mwMainPanel.add(mwButtonPanel);
 
-        mwConfigPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createTitledBorder("Configuration"),
+//        mwConfigPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createTitledBorder("Configuration"),
+//                BorderFactory.createEmptyBorder(5, 5, 5, 5)));
+
+        mwConfigPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createTitledBorder(props.getProperty("Configuration")),
                 BorderFactory.createEmptyBorder(5, 5, 5, 5)));
+
+//        mwSubscribeManagementPanel.setBorder(BorderFactory.createCompoundBorder(
+//                BorderFactory.createTitledBorder("Subscribe Management"), BorderFactory.createEmptyBorder(5, 5, 5, 5)));
 
         mwSubscribeManagementPanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createTitledBorder("Subscribe Management"), BorderFactory.createEmptyBorder(5, 5, 5, 5)));
+                BorderFactory.createTitledBorder(props.getProperty("Subscribe.Management")), BorderFactory.createEmptyBorder(5, 5, 5, 5)));
 
+//        mwEventTypeSelectPanel.setBorder(BorderFactory.createCompoundBorder(
+//                BorderFactory.createTitledBorder("Events to be returned"), BorderFactory.createEmptyBorder(5, 5, 5, 5)));
         mwEventTypeSelectPanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createTitledBorder("Events to be returned"), BorderFactory.createEmptyBorder(5, 5, 5, 5)));
+                BorderFactory.createTitledBorder(props.getProperty("Events.to.be.returned")), BorderFactory.createEmptyBorder(5, 5, 5, 5)));
 
-        mwQueryPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createTitledBorder("Query arguments"),
+
+
+//        mwQueryPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createTitledBorder("Query arguments"),
+//                BorderFactory.createEmptyBorder(5, 5, 5, 5)));
+        mwQueryPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createTitledBorder(props.getProperty("Query.arguments")),
                 BorderFactory.createEmptyBorder(5, 5, 5, 5)));
 
-        mwSubscriptionPanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createTitledBorder("Subscription Arguments"), BorderFactory.createEmptyBorder(5, 5, 5, 5)));
 
-        mwServiceUrlLabel = new JLabel("Query interface URL: ");
-        mwServiceInfoButton = new JButton("Info");
+//        mwSubscriptionPanel.setBorder(BorderFactory.createCompoundBorder(
+//                BorderFactory.createTitledBorder("Subscription Arguments"), BorderFactory.createEmptyBorder(5, 5, 5, 5)));
+        mwSubscriptionPanel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createTitledBorder(props.getProperty("Subscription.Arguments")), BorderFactory.createEmptyBorder(5, 5, 5, 5)));
+
+
+        // wurunzhou edit at 20151025 for setting UI using chinese
+        // and no save orignal ,just change to xx.xx model
+        mwServiceUrlLabel = new JLabel(props.getProperty("Query.interface.URL"));
+        mwServiceInfoButton = new JButton(props.getProperty("Info"));
         mwServiceInfoButton.addActionListener(this);
         mwAuthOptions = new AuthenticationOptionsPanel(this);
 
-        mwUnsubscribeQueryLabel = new JLabel("Unsubscribe ID: ");
+        mwUnsubscribeQueryLabel = new JLabel(props.getProperty("Unsubscribe.ID"));
         mwUnsubscribeQueryTextField = new JTextField("", 40);
-        mwUnsubscribeQueryTextField.setToolTipText("Only one Subscription ID");
-        mwUnsubscribeQueryButton = new JButton("Unsubscribe");
+        mwUnsubscribeQueryTextField.setToolTipText(props.getProperty("Only.one.Subscription.ID"));
+        mwUnsubscribeQueryButton = new JButton(props.getProperty("Unsubscribe"));
         mwUnsubscribeQueryButton.addActionListener(this);
-        mwSubscriptionIdButton = new JButton("Show SubscriptionIDs");
+        mwSubscriptionIdButton = new JButton(props.getProperty("Show.SubscriptionIDs"));
         mwSubscriptionIdButton.addActionListener(this);
 
-        mwShowDebugWindowCheckBox = new JCheckBox("Show debug window", false);
+        mwShowDebugWindowCheckBox = new JCheckBox(props.getProperty("Show.debug.window"), false);
         mwShowDebugWindowCheckBox.addActionListener(this);
 
         mwServiceUrlTextField.getDocument().addDocumentListener(new DocumentListener() {
@@ -649,13 +678,20 @@ public class QueryClientGui extends WindowAdapter implements ActionListener, Aut
         c.gridy = 0;
         mwSubscribeManagementPanel.add(mwSubscriptionIdButton, c);
 
-        mwObjectEventsCheckBox = new JCheckBox("ObjectEvents");
+        //mwObjectEventsCheckBox = new JCheckBox("ObjectEvents");
+        mwObjectEventsCheckBox = new JCheckBox(props.getProperty("ObjectEvents"));
         mwEventTypeSelectPanel.add(mwObjectEventsCheckBox);
-        mwAggregationEventsCheckBox = new JCheckBox("AggregationEvents");
+
+        //mwAggregationEventsCheckBox = new JCheckBox("AggregationEvents");
+        mwAggregationEventsCheckBox = new JCheckBox(props.getProperty("AggregationEvents"));
         mwEventTypeSelectPanel.add(mwAggregationEventsCheckBox);
-        mwQuantityEventsCheckBox = new JCheckBox("QuantityEvents");
+
+        //mwQuantityEventsCheckBox = new JCheckBox("QuantityEvents");
+        mwQuantityEventsCheckBox = new JCheckBox(props.getProperty("QuantityEvents"));
         mwEventTypeSelectPanel.add(mwQuantityEventsCheckBox);
-        mwTransactionEventsCheckBox = new JCheckBox("TransactionEvents");
+
+        //mwTransactionEventsCheckBox = new JCheckBox("TransactionEvents");
+        mwTransactionEventsCheckBox = new JCheckBox(props.getProperty("TransactionEvents"));
         mwEventTypeSelectPanel.add(mwTransactionEventsCheckBox);
 
         mwQuerySelectComboBoxes = new LinkedList<JComboBox<String>>();
@@ -663,8 +699,11 @@ public class QueryClientGui extends WindowAdapter implements ActionListener, Aut
 
         mwQuerySelectComboBoxes.add(new JComboBox<String>(queryParameterUsertext));
         ((JComboBox<String>) mwQuerySelectComboBoxes.getFirst()).addActionListener(this);
-        queryParamsUserText.get("ignore");
-        mwQueryArgumentTextFields.add(new JTextFieldEnhanced(15, queryParamsUserText.get("ignore")));
+        //wurunzhou edit at 20151025
+//        queryParamsUserText.get("ignore");
+//        mwQueryArgumentTextFields.add(new JTextFieldEnhanced(15, queryParamsUserText.get("ignore")));
+        queryParamsUserText.get(props.getProperty("ignore"));
+        mwQueryArgumentTextFields.add(new JTextFieldEnhanced(15, queryParamsUserText.get(props.getProperty("ignore"))));
 
         mwQueryArgsPanel = new JPanel(new GridBagLayout());
         mwQueryExamplesPanel = new JPanel(new BorderLayout());
@@ -828,11 +867,17 @@ public class QueryClientGui extends WindowAdapter implements ActionListener, Aut
         mwScheduleSecField = new JTextField("", 10);
         mwSubscriptionPanel.add(mwScheduleSecField, c);
 
-        mwFillInExampleButton = new JButton("Fill in example");
+        // wurunzhou add 20151025
+        // for UI just change to chinese
+//        mwFillInExampleButton = new JButton("Fill in example");
+        mwFillInExampleButton = new JButton(props.getProperty("Fill.in.example"));
         mwFillInExampleButton.addActionListener(this);
         mwQueryExamplesPanel.add(mwFillInExampleButton, BorderLayout.EAST);
 
-        mwRunQueryButton = new JButton("Run query");
+        // wurunzhou add 20151025
+        // for UI just change to chinese
+//        mwRunQueryButton = new JButton("Run query");
+        mwRunQueryButton = new JButton(props.getProperty("Run.query"));
         mwRunQueryButton.addActionListener(this);
         mwButtonPanel.add(mwRunQueryButton);
 
@@ -1300,7 +1345,10 @@ public class QueryClientGui extends WindowAdapter implements ActionListener, Aut
 
         mwQuerySelectComboBoxes.add(new JComboBox<String>(queryParameterUsertext));
         ((JComboBox<String>) mwQuerySelectComboBoxes.getLast()).addActionListener(this);
-        mwQueryArgumentTextFields.add(new JTextFieldEnhanced(15, queryParamsUserText.get("ignore")));
+        // wurunzhou edit at 20151025
+        Properties props =  loadProperties1(querycn_FILE);
+//        mwQueryArgumentTextFields.add(new JTextFieldEnhanced(15, queryParamsUserText.get("ignore")));
+        mwQueryArgumentTextFields.add(new JTextFieldEnhanced(15, queryParamsUserText.get(props.getProperty("ignore"))));
 
         GridBagConstraints c = new GridBagConstraints();
         c.fill = GridBagConstraints.HORIZONTAL;
@@ -1328,6 +1376,23 @@ public class QueryClientGui extends WindowAdapter implements ActionListener, Aut
             mwShowDebugWindowCheckBox.setSelected(false);
             return;
         }
+    }
+
+    // wurunzhou add at 20151024 for setting UI chinese
+    private Properties loadProperties1(String querycn_FILE1) {
+        Properties props = new Properties();
+        InputStream is = getClass().getResourceAsStream(querycn_FILE1);
+        if (is != null) {
+            try {
+                props.load(new InputStreamReader(is,"UTF-8"));
+                is.close();
+            } catch (IOException e) {
+                System.out.println("Unable to load properties from " + querycn_FILE1 + ". Using defaults.");
+            }
+        } else {
+            System.out.println("Unable to load properties from file " + querycn_FILE1 + ". Using defaults.");
+        }
+        return props;
     }
 
     /**
